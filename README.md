@@ -1,32 +1,34 @@
 # Global Dual Nova RAG Chatbot
 
-🌍 **Enterprise-grade multilingual customer service chatbot** powered by Amazon Bedrock Nova models with dual-language support and RAG (Retrieval-Augmented Generation) capabilities.
+🌍 **Amazon Bedrock Nova 모델을 활용한 엔터프라이즈급 다국어 고객 서비스 챗봇**으로, 이중 언어 지원과 RAG(Retrieval-Augmented Generation) 기능을 제공합니다.
 
-## 🚀 Features
+> 📖 **English Version**: [README_EN.md](README_EN.md)
 
-### Core Capabilities
-- **Dual Language Support**: Korean (staff) + English (customer) responses
-- **Dual Model Architecture**: Nova Micro (fast) + Nova Pro (detailed) parallel processing
-- **RAG Integration**: Amazon Bedrock Knowledge Bases for contextual responses
-- **Real-time Streaming**: GitHub-original parallel execution pattern
-- **Game Character Recognition**: Built-in gaming glossary for character identification
+## 🚀 주요 기능
 
-### Technical Highlights
-- **True Parallel Processing**: ThreadPoolExecutor-based concurrent model execution
-- **Buffer-based Streaming**: Real-time response display with natural typing effects
-- **Prompt Caching**: Nova model caching for improved performance
-- **Auto-scaling Infrastructure**: AWS ECS Fargate with Application Load Balancer
-- **Secure Configuration**: AWS Secrets Manager integration
+### 핵심 기능
+- **이중 언어 지원**: 한국어(담당자용) + 영어(고객용) 응답
+- **듀얼 모델 아키텍처**: Nova Micro(빠른 응답) + Nova Pro(상세 분석) 병렬 처리
+- **RAG 통합**: Amazon Bedrock Knowledge Base를 활용한 맥락적 응답
+- **실시간 스트리밍**: GitHub 원본 병렬 실행 패턴 적용
+- **게임 캐릭터 인식**: 내장된 게임 용어집을 통한 캐릭터 식별
 
-## 📋 Prerequisites
+### 기술적 특징
+- **진정한 병렬 처리**: ThreadPoolExecutor 기반 동시 모델 실행
+- **버퍼 기반 스트리밍**: 자연스러운 타이핑 효과를 통한 실시간 응답 표시
+- **프롬프트 캐싱**: Nova 모델 캐싱을 통한 성능 향상
+- **자동 확장 인프라**: AWS ECS Fargate와 Application Load Balancer
+- **보안 설정**: AWS Secrets Manager 통합
 
-- AWS Account with appropriate permissions
+## 📋 사전 요구사항
+
+- 적절한 권한을 가진 AWS 계정
 - Terraform >= 1.0
-- AWS CLI configured
-- Amazon Bedrock access enabled
-- Knowledge Base created in Amazon Bedrock
+- AWS CLI 설정 완료
+- Amazon Bedrock 액세스 활성화
+- Amazon Bedrock에서 생성된 Knowledge Base
 
-## 🏗️ Architecture
+## 🏗️ 아키텍처
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -46,26 +48,26 @@
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-## 🚀 Quick Start
+## 🚀 빠른 시작
 
-### 1. Clone Repository
+### 1. 저장소 클론
 ```bash
-git clone https://github.com/your-username/global-dual-nova-rag-chatbot.git
+git clone https://github.com/hcsung-aws/global-dual-nova-rag-chatbot.git
 cd global-dual-nova-rag-chatbot
 ```
 
-### 2. Configure AWS Credentials
+### 2. AWS 자격 증명 설정
 ```bash
 aws configure
 ```
 
-### 3. Create Knowledge Base
-1. Go to Amazon Bedrock Console
-2. Create a new Knowledge Base
-3. Note the Knowledge Base ID
-4. Update `terraform/variables.tf` with your Knowledge Base ID
+### 3. Knowledge Base 생성
+1. Amazon Bedrock 콘솔로 이동
+2. 새 Knowledge Base 생성
+3. Knowledge Base ID 기록
+4. `terraform/variables.tf`에 Knowledge Base ID 업데이트
 
-### 4. Deploy Infrastructure
+### 4. 인프라 배포
 ```bash
 cd terraform
 terraform init
@@ -73,48 +75,48 @@ terraform plan
 terraform apply
 ```
 
-### 5. Access Application
-After deployment, Terraform will output the Application Load Balancer URL.
+### 5. 애플리케이션 접속
+배포 완료 후 Terraform이 Application Load Balancer URL을 출력합니다.
 
-## 📁 Project Structure
+## 📁 프로젝트 구조
 
 ```
 global-dual-nova-rag-chatbot/
 ├── src/
-│   └── chatbot_app.py          # Main Streamlit application
+│   └── chatbot_app.py          # 메인 Streamlit 애플리케이션
 ├── terraform/
-│   ├── main.tf                 # Main infrastructure configuration
-│   ├── variables.tf            # Input variables
-│   ├── outputs.tf              # Output values
-│   ├── ecs.tf                  # ECS service configuration
+│   ├── main.tf                 # 메인 인프라 설정
+│   ├── variables.tf            # 입력 변수
+│   ├── outputs.tf              # 출력 값
+│   ├── ecs.tf                  # ECS 서비스 설정
 │   ├── alb.tf                  # Application Load Balancer
-│   ├── secrets.tf              # Secrets Manager configuration
-│   └── s3.tf                   # S3 bucket for code storage
+│   ├── secrets.tf              # Secrets Manager 설정
+│   └── s3.tf                   # 코드 저장용 S3 버킷
 ├── config/
-│   ├── requirements.txt        # Python dependencies
-│   └── game_glossary.json      # Gaming character glossary
+│   ├── requirements.txt        # Python 의존성
+│   └── game_glossary.json      # 게임 캐릭터 용어집
 ├── docs/
-│   ├── ARCHITECTURE.md         # Detailed architecture documentation
-│   ├── DEPLOYMENT.md           # Deployment guide
-│   └── API.md                  # API documentation
+│   ├── ARCHITECTURE.md         # 상세 아키텍처 문서
+│   ├── DEPLOYMENT.md           # 배포 가이드
+│   └── API.md                  # API 문서
 ├── assets/
-│   └── architecture-diagram.png # Architecture diagram
+│   └── architecture-diagram.txt # 아키텍처 다이어그램
 ├── scripts/
-│   ├── deploy.sh               # Deployment script
-│   └── cleanup.sh              # Cleanup script
-└── README.md                   # This file
+│   ├── deploy.sh               # 배포 스크립트
+│   └── cleanup.sh              # 정리 스크립트
+└── README.md                   # 이 파일
 ```
 
-## 🔧 Configuration
+## 🔧 설정
 
-### Environment Variables
-The application uses AWS Secrets Manager for configuration:
+### 환경 변수
+애플리케이션은 AWS Secrets Manager를 사용하여 설정을 관리합니다:
 
-- `NOTION_TOKEN_SECRET_ARN`: Notion API token (if using Notion integration)
-- `APP_CONFIG_SECRET_ARN`: Application configuration including Knowledge Base ID
+- `NOTION_TOKEN_SECRET_ARN`: Notion API 토큰 (Notion 통합 사용 시)
+- `APP_CONFIG_SECRET_ARN`: Knowledge Base ID를 포함한 애플리케이션 설정
 
-### Knowledge Base Configuration
-Update the Knowledge Base ID in your secrets:
+### Knowledge Base 설정
+시크릿에서 Knowledge Base ID를 업데이트하세요:
 ```json
 {
   "knowledge_base_id": "your-knowledge-base-id-here",
@@ -122,144 +124,145 @@ Update the Knowledge Base ID in your secrets:
 }
 ```
 
-## 🎯 Usage
+## 🎯 사용법
 
-### For Korean Users
-- Ask questions in Korean
-- Receive responses using GitHub-original parallel processing (Micro + Pro)
+### 한국어 사용자
+- 한국어로 질문
+- GitHub 원본 병렬 처리(Micro + Pro)를 사용한 응답 수신
 
-### For English Users
-- Ask questions in English
-- Receive dual-language responses:
-  1. Korean response (for staff verification)
-  2. English response (for customer)
+### 영어 사용자
+- 영어로 질문
+- 이중 언어 응답 수신:
+  1. 한국어 응답 (담당자 확인용)
+  2. 영어 응답 (고객용)
 
-### Language Detection
-The system automatically detects input language and responds accordingly.
+### 언어 감지
+시스템이 자동으로 입력 언어를 감지하고 적절히 응답합니다.
 
-## 🔄 Dual Model Processing
+## 🔄 듀얼 모델 처리
 
-### GitHub Original Pattern
+### GitHub 원본 패턴
 ```python
-# Pro model runs in background
+# Pro 모델을 백그라운드에서 실행
 with ThreadPoolExecutor(max_workers=2) as executor:
     future_pro = executor.submit(collect_pro_stream)
     
-    # Micro model streams in real-time
+    # Micro 모델을 실시간으로 스트리밍
     for chunk in stream_nova_model('nova-micro', prompt):
         display_chunk(chunk)
     
-    # Pro results displayed from buffer
+    # Pro 결과를 버퍼에서 표시
     display_pro_results(future_pro.result())
 ```
 
-### Performance Benefits
-- **Faster Response Time**: Micro model provides immediate feedback
-- **Detailed Analysis**: Pro model adds comprehensive insights
-- **Parallel Execution**: Both models run simultaneously
-- **Natural Flow**: Buffer-based streaming creates smooth user experience
+### 성능상 이점
+- **빠른 응답 시간**: Micro 모델이 즉각적인 피드백 제공
+- **상세한 분석**: Pro 모델이 포괄적인 인사이트 추가
+- **병렬 실행**: 두 모델이 동시에 실행
+- **자연스러운 흐름**: 버퍼 기반 스트리밍으로 부드러운 사용자 경험
 
-## 📊 Monitoring
+## 📊 모니터링
 
-### CloudWatch Metrics
-- ECS service health
-- Application Load Balancer metrics
-- Bedrock API usage
-- Response times
+### CloudWatch 메트릭
+- ECS 서비스 상태
+- Application Load Balancer 메트릭
+- Bedrock API 사용량
+- 응답 시간
 
-### Logging
-- Application logs in CloudWatch
-- ECS task logs
-- Load balancer access logs
+### 로깅
+- CloudWatch의 애플리케이션 로그
+- ECS 태스크 로그
+- 로드 밸런서 액세스 로그
 
-## 🔒 Security
+## 🔒 보안
 
-### Best Practices Implemented
-- **Secrets Management**: All sensitive data in AWS Secrets Manager
-- **Network Security**: VPC with private subnets
-- **IAM Roles**: Least privilege access
-- **HTTPS**: SSL/TLS encryption
-- **Container Security**: Fargate managed containers
+### 구현된 모범 사례
+- **시크릿 관리**: AWS Secrets Manager에 모든 민감한 데이터 저장
+- **네트워크 보안**: 프라이빗 서브넷이 있는 VPC
+- **IAM 역할**: 최소 권한 액세스
+- **HTTPS**: SSL/TLS 암호화
+- **컨테이너 보안**: Fargate 관리형 컨테이너
 
-## 🚀 Scaling
+## 🚀 확장
 
-### Auto Scaling
-- ECS service auto-scaling based on CPU/memory
-- Application Load Balancer distributes traffic
-- Fargate automatically manages infrastructure
+### 자동 확장
+- CPU/메모리 기반 ECS 서비스 자동 확장
+- Application Load Balancer가 트래픽 분산
+- Fargate가 인프라를 자동으로 관리
 
-### Cost Optimization
-- Fargate Spot instances (optional)
-- Bedrock on-demand pricing
-- S3 lifecycle policies
+### 비용 최적화
+- Fargate Spot 인스턴스 (선택사항)
+- Bedrock 온디맨드 요금제
+- S3 라이프사이클 정책
 
-## 🛠️ Development
+## 🛠️ 개발
 
-### Local Development
+### 로컬 개발
 ```bash
-# Install dependencies
+# 의존성 설치
 pip install -r config/requirements.txt
 
-# Set environment variables
+# 환경 변수 설정
 export AWS_DEFAULT_REGION=us-east-1
 export DATA_BUCKET_NAME=your-bucket-name
 
-# Run locally
+# 로컬 실행
 streamlit run src/chatbot_app.py
 ```
 
-### Testing
+### 테스트
 ```bash
-# Test Bedrock connectivity
+# Bedrock 연결 테스트
 python scripts/test_bedrock.py
 
-# Test Knowledge Base
+# Knowledge Base 테스트
 python scripts/test_knowledge_base.py
 ```
 
-## 📈 Performance Metrics
+## 📈 성능 메트릭
 
-### Response Times (Typical)
-- **Micro Model**: 1-3 seconds
-- **Pro Model**: 3-8 seconds
-- **Parallel Processing**: ~3-5 seconds total
-- **Knowledge Base Query**: 0.5-2 seconds
+### 응답 시간 (일반적)
+- **Micro 모델**: 1-3초
+- **Pro 모델**: 3-8초
+- **병렬 처리**: 총 ~3-5초
+- **Knowledge Base 쿼리**: 0.5-2초
 
-### Throughput
-- **Concurrent Users**: 100+ (with auto-scaling)
-- **Requests per Second**: 50+ per container
-- **Availability**: 99.9% (multi-AZ deployment)
+### 처리량
+- **동시 사용자**: 100+ (자동 확장 포함)
+- **초당 요청 수**: 컨테이너당 50+
+- **가용성**: 99.9% (다중 AZ 배포)
 
-## 🤝 Contributing
+## 🤝 기여
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+1. 저장소 포크
+2. 기능 브랜치 생성
+3. 변경사항 작성
+4. 테스트 추가
+5. 풀 리퀘스트 제출
 
-## 📄 License
+## 📄 라이선스
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+이 프로젝트는 MIT 라이선스 하에 라이선스가 부여됩니다 - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
-## 🆘 Support
+## 🆘 지원
 
-### Common Issues
-- **Bedrock Access**: Ensure Bedrock is enabled in your region
-- **Knowledge Base**: Verify Knowledge Base ID is correct
-- **Permissions**: Check IAM roles have necessary permissions
+### 일반적인 문제
+- **Bedrock 액세스**: 해당 리전에서 Bedrock이 활성화되어 있는지 확인
+- **Knowledge Base**: Knowledge Base ID가 올바른지 확인
+- **권한**: IAM 역할에 필요한 권한이 있는지 확인
 
-### Getting Help
-- Create an issue in this repository
-- Check the [docs/](docs/) directory for detailed guides
-- Review CloudWatch logs for debugging
+### 도움 받기
+- 이 저장소에서 이슈 생성
+- 자세한 가이드는 [docs/](docs/) 디렉토리 확인
+- 디버깅을 위해 CloudWatch 로그 검토
 
-## 🏆 Acknowledgments
+## 🏆 감사의 말
 
-- Based on the original dual model pattern from [Hyunsoo0128/Dual_Model_ChatBot](https://github.com/Hyunsoo0128/Dual_Model_ChatBot)
-- Powered by Amazon Bedrock Nova models
-- Built with Streamlit and AWS services
+- [Hyunsoo0128/Dual_Model_ChatBot](https://github.com/Hyunsoo0128/Dual_Model_ChatBot)의 원본 듀얼 모델 패턴을 기반으로 함
+- 게임 내 채팅 번역 및 단어장 기능은 [카카오게임즈의 Amazon Bedrock 활용 사례](https://aws.amazon.com/ko/blogs/tech/kakaogames-amazon-bedrock-in-game-chat-translation/)를 참고하여 구현
+- Amazon Bedrock Nova 모델로 구동
+- Streamlit 및 AWS 서비스로 구축
 
 ---
 
-**Made with ❤️ for global customer service excellence**
+**글로벌 고객 서비스 우수성을 위해 ❤️로 제작되었습니다**
