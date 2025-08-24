@@ -1,0 +1,48 @@
+# Example Terraform Variables Configuration
+# Copy this file to terraform.tfvars and update with your values
+
+# AWS Configuration
+aws_region = "us-east-1"
+environment = "production"
+project_name = "global-dual-nova-chatbot"
+
+# Required: Amazon Bedrock Knowledge Base Configuration
+# Create a Knowledge Base in Amazon Bedrock first, then provide the ID here
+knowledge_base_id = "XXXXXXXXXX"  # Replace with your Knowledge Base ID
+data_source_ids = []              # Optional: specific data source IDs
+
+# Optional: Notion Integration
+# notion_token = "secret_xxxxxxxxxx"  # Uncomment and add your Notion token if needed
+
+# Network Configuration
+vpc_cidr = "10.0.0.0/16"
+public_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.10.0/24", "10.0.20.0/24"]
+
+# ECS Configuration
+ecs_cpu = 512           # CPU units (256, 512, 1024, 2048, 4096)
+ecs_memory = 1024       # Memory in MB
+ecs_desired_count = 1   # Number of tasks to run
+
+# Auto Scaling Configuration
+enable_auto_scaling = true
+ecs_min_capacity = 1
+ecs_max_capacity = 10
+auto_scaling_target_cpu = 70
+auto_scaling_target_memory = 80
+
+# Logging Configuration
+enable_logging = true
+log_retention_days = 7
+
+# HTTPS Configuration (Optional)
+# enable_https = true
+# ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+# domain_name = "chatbot.example.com"
+
+# Additional Tags
+tags = {
+  Owner = "YourName"
+  Team = "YourTeam"
+  CostCenter = "YourCostCenter"
+}

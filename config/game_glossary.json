@@ -1,0 +1,53 @@
+{
+  "characters": {
+    "Paul": {
+      "description": "Main character in the game",
+      "aliases": ["폴", "paul", "PAUL"],
+      "type": "protagonist"
+    },
+    "Sarah": {
+      "description": "Supporting character",
+      "aliases": ["사라", "sarah", "SARAH"],
+      "type": "supporting"
+    },
+    "Mike": {
+      "description": "Antagonist character",
+      "aliases": ["마이크", "mike", "MIKE"],
+      "type": "antagonist"
+    }
+  },
+  "items": {
+    "Sword": {
+      "description": "Basic weapon",
+      "aliases": ["검", "sword", "SWORD"],
+      "category": "weapon"
+    },
+    "Shield": {
+      "description": "Defensive equipment",
+      "aliases": ["방패", "shield", "SHIELD"],
+      "category": "armor"
+    },
+    "Potion": {
+      "description": "Health recovery item",
+      "aliases": ["포션", "potion", "POTION"],
+      "category": "consumable"
+    }
+  },
+  "locations": {
+    "Forest": {
+      "description": "Starting area",
+      "aliases": ["숲", "forest", "FOREST"],
+      "type": "outdoor"
+    },
+    "Castle": {
+      "description": "Main hub",
+      "aliases": ["성", "castle", "CASTLE"],
+      "type": "building"
+    },
+    "Dungeon": {
+      "description": "Challenge area",
+      "aliases": ["던전", "dungeon", "DUNGEON"],
+      "type": "underground"
+    }
+  }
+}
