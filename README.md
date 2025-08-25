@@ -98,7 +98,8 @@ global-dual-nova-rag-chatbot/
 ├── docs/
 │   ├── ARCHITECTURE.md         # 상세 아키텍처 문서
 │   ├── DEPLOYMENT.md           # 배포 가이드
-│   └── API.md                  # API 문서
+│   ├── API.md                  # API 문서
+│   └── COST_ANALYSIS.md        # 비용 분석 보고서
 ├── assets/
 │   └── architecture-diagram.txt # 아키텍처 다이어그램
 ├── scripts/
@@ -173,6 +174,27 @@ with ThreadPoolExecutor(max_workers=2) as executor:
 - CloudWatch의 애플리케이션 로그
 - ECS 태스크 로그
 - 로드 밸런서 액세스 로그
+
+## 💰 비용 분석
+
+### 모델 비용 비교
+현재 구현된 **Nova Micro + Pro 병렬 처리** 방식은 다른 모델 대비 뛰어난 비용 효율성을 제공합니다:
+
+| 모델 구성 | 월간 비용* | 비용 차이 | 특징 |
+|-----------|------------|-----------|------|
+| **Nova Micro + Pro (현재)** | **$46.34** | 기준 | ⭐⭐⭐⭐⭐ 최적 균형 |
+| Claude 3.5 Sonnet | $202.50 | **+337%** | 높은 품질, 높은 비용 |
+| Claude 3.5 Haiku | $16.88 | **-64%** | 저비용, 제한된 기능 |
+
+*중간 복잡도 시나리오 기준 (일일 500 요청)
+
+### 핵심 비용 절감 요소
+- **Claude 3.5 Sonnet 대비 77% 비용 절감**
+- **프롬프트 캐싱으로 추가 20-40% 절감 가능**
+- **병렬 처리로 사용자 경험 최적화**
+- **이중 언어 지원의 독특한 가치**
+
+📊 **상세 분석**: [COST_ANALYSIS.md](docs/COST_ANALYSIS.md)
 
 ## 🔒 보안
 
