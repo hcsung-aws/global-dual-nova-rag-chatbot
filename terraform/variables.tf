@@ -148,6 +148,28 @@ variable "tags" {
   default     = {}
 }
 
+variable "owner" {
+  description = "Owner of the resources (for tagging and cost allocation)"
+  type        = string
+  default     = "DevOps-Team"
+  
+  validation {
+    condition     = length(var.owner) > 0
+    error_message = "Owner must be specified for proper resource management."
+  }
+}
+
+variable "cost_center" {
+  description = "Cost center for billing and cost allocation"
+  type        = string
+  default     = "Engineering"
+  
+  validation {
+    condition     = length(var.cost_center) > 0
+    error_message = "Cost center must be specified for proper cost allocation."
+  }
+}
+
 # Security and Access Control Variables
 variable "allowed_cidr_blocks" {
   description = "List of CIDR blocks allowed to access the application"

@@ -1,0 +1,35 @@
+{
+  "aws": {
+    "region": "us-east-1",
+    "bedrock_models": {
+      "nova_micro": "us.amazon.nova-micro-v1:0",
+      "nova_pro": "us.amazon.nova-pro-v1:0"
+    },
+    "knowledge_base_id": "SJJP9YYPHX",
+    "s3_bucket": ""
+  },
+  "ui": {
+    "page_title": "글로벌 CS 챗봇 🌍",
+    "page_icon": "🌍",
+    "layout": "wide",
+    "theme": {
+      "primaryColor": "#667eea",
+      "backgroundColor": "#ffffff",
+      "secondaryBackgroundColor": "#f0f2f6"
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file_path": null,
+    "max_file_size": 10485760,
+    "backup_count": 5
+  },
+  "cache": {
+    "enabled": true,
+    "ttl_seconds": 3600,
+    "max_size": 1000
+  },
+  "environment": "development",
+  "debug": false
+}

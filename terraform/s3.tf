@@ -1,11 +1,15 @@
 # S3 Bucket for Code Storage
 resource "aws_s3_bucket" "code" {
-  bucket        = "${var.project_name}-code-${random_id.bucket_suffix.hex}"
+  bucket        = "${local.resource_prefix}-code-${random_id.bucket_suffix.hex}"
   force_destroy = true
 
-  tags = {
-    Name = "${var.project_name}-code-bucket"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-code-bucket"
+    Type = "Storage"
+    Tier = "Application"
+    Service = "S3"
+    Purpose = "CodeStorage"
+  })
 }
 
 resource "aws_s3_bucket_versioning" "code" {
@@ -41,9 +45,13 @@ resource "aws_s3_object" "chatbot_app" {
   source = "${path.module}/../src/chatbot_app.py"
   etag   = filemd5("${path.module}/../src/chatbot_app.py")
 
-  tags = {
-    Name = "chatbot-application-code"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-chatbot-application-code"
+    Type = "Storage"
+    Tier = "Application"
+    Service = "S3"
+    ContentType = "ApplicationCode"
+  })
 }
 
 # Upload requirements.txt
@@ -53,7 +61,11 @@ resource "aws_s3_object" "requirements" {
   source = "${path.module}/../config/requirements.txt"
   etag   = filemd5("${path.module}/../config/requirements.txt")
 
-  tags = {
-    Name = "python-requirements"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-python-requirements"
+    Type = "Storage"
+    Tier = "Application"
+    Service = "S3"
+    ContentType = "Dependencies"
+  })
 }

@@ -1,101 +1,9 @@
-# Application Load Balancer Security Group
-resource "aws_security_group" "alb" {
-  name_prefix = "${var.project_name}-alb-"
-  vpc_id      = aws_vpc.main.id
-
-  # Dynamic ingress rules based on configuration
-  dynamic "ingress" {
-    for_each = var.restrict_public_access ? [] : [1]
-    content {
-      description = "HTTP from allowed CIDR blocks"
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = var.allowed_cidr_blocks
-    }
-  }
-
-  # Restricted access rules (admin IPs only)
-  dynamic "ingress" {
-    for_each = var.restrict_public_access ? [1] : []
-    content {
-      description = "HTTP from admin IPs only"
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = [for ip in var.admin_ip_addresses : "${ip}/32"]
-    }
-  }
-
-  # VPC access rule (optional)
-  dynamic "ingress" {
-    for_each = var.enable_vpc_access ? [1] : []
-    content {
-      description = "HTTP from VPC"
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = [aws_vpc.main.cidr_block]
-    }
-  }
-
-  # HTTPS rules (if enabled)
-  dynamic "ingress" {
-    for_each = var.enable_https ? (var.restrict_public_access ? [] : [1]) : []
-    content {
-      description = "HTTPS from allowed CIDR blocks"
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_blocks = var.allowed_cidr_blocks
-    }
-  }
-
-  dynamic "ingress" {
-    for_each = var.enable_https ? (var.restrict_public_access ? [1] : []) : []
-    content {
-      description = "HTTPS from admin IPs only"
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_blocks = [for ip in var.admin_ip_addresses : "${ip}/32"]
-    }
-  }
-
-  # Custom access rules
-  dynamic "ingress" {
-    for_each = var.custom_access_rules
-    content {
-      description = ingress.value.description
-      from_port   = ingress.value.from_port
-      to_port     = ingress.value.to_port
-      protocol    = ingress.value.protocol
-      cidr_blocks = [ingress.value.cidr_block]
-    }
-  }
-
-  # Egress to ECS tasks
-  egress {
-    description     = "To ECS tasks"
-    from_port       = 8501
-    to_port         = 8501
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
-  }
-
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-alb-sg"
-    Type = "LoadBalancer"
-  })
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+# Application Load Balancer Security Group (참조: main.tf의 정의 사용)
+# 중복 정의 제거 - main.tf에서 이미 정의됨
 
 # Application Load Balancer
 resource "aws_lb" "main" {
-  name               = "${var.project_name}-alb"
+  name               = "${local.resource_prefix}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -109,15 +17,17 @@ resource "aws_lb" "main" {
     enabled = true
   }
 
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-alb"
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-alb"
     Type = "LoadBalancer"
+    Tier = "Network"
+    Service = "ALB"
   })
 }
 
 # Target Group
 resource "aws_lb_target_group" "main" {
-  name        = "${var.project_name}-tg"
+  name        = "${local.resource_prefix}-tg"
   port        = 8501
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
@@ -135,9 +45,11 @@ resource "aws_lb_target_group" "main" {
     unhealthy_threshold = 2
   }
 
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-target-group"
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-target-group"
     Type = "LoadBalancer"
+    Tier = "Network"
+    Service = "ALB"
   })
 }
 
@@ -169,9 +81,11 @@ resource "aws_lb_listener" "main" {
     }
   }
 
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-http-listener"
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-http-listener"
     Type = "LoadBalancer"
+    Tier = "Network"
+    Service = "ALB"
   })
 }
 
@@ -190,20 +104,24 @@ resource "aws_lb_listener" "https" {
     target_group_arn = aws_lb_target_group.main.arn
   }
 
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-https-listener"
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-https-listener"
     Type = "LoadBalancer"
+    Tier = "Network"
+    Service = "ALB"
   })
 }
 
 # S3 Bucket for ALB Access Logs
 resource "aws_s3_bucket" "alb_logs" {
-  bucket        = "${var.project_name}-alb-logs-${random_id.bucket_suffix.hex}"
+  bucket        = "${local.resource_prefix}-alb-logs-${random_id.bucket_suffix.hex}"
   force_destroy = true
 
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-alb-logs"
-    Type = "Logging"
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-alb-logs"
+    Type = "Storage"
+    Tier = "Logging"
+    Service = "S3"
   })
 }
 

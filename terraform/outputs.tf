@@ -84,7 +84,7 @@ output "alb_security_group_id" {
 
 output "ecs_security_group_id" {
   description = "ID of the ECS security group"
-  value       = aws_security_group.ecs_tasks.id
+  value       = aws_security_group.ecs.id
 }
 
 # S3 Bucket Information
@@ -101,7 +101,7 @@ output "code_bucket_name" {
 # CloudWatch Information
 output "cloudwatch_log_group_name" {
   description = "Name of the CloudWatch log group"
-  value       = var.enable_logging ? aws_cloudwatch_log_group.main[0].name : "Logging not enabled"
+  value       = var.enable_logging ? aws_cloudwatch_log_group.ecs[0].name : "Logging not enabled"
 }
 
 # Secrets Manager Information
@@ -112,7 +112,7 @@ output "app_config_secret_arn" {
 
 output "notion_token_secret_arn" {
   description = "ARN of the Notion token secret"
-  value       = var.notion_token != "" ? aws_secretsmanager_secret.notion_token[0].arn : "Notion integration not configured"
+  value       = aws_secretsmanager_secret.notion_token.arn
 }
 
 # Deployment Information

@@ -1,12 +1,16 @@
 # Secrets Manager - Application Configuration
 resource "aws_secretsmanager_secret" "app_config" {
-  name                    = "${var.project_name}/app-config"
+  name                    = "${local.resource_prefix}/app-config"
   description             = "Application configuration for Global Dual Nova RAG Chatbot"
   recovery_window_in_days = 7
 
-  tags = {
-    Name = "${var.project_name}-app-config"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-app-config"
+    Type = "Security"
+    Tier = "Application"
+    Service = "SecretsManager"
+    Purpose = "Configuration"
+  })
 }
 
 resource "aws_secretsmanager_secret_version" "app_config" {
@@ -21,13 +25,17 @@ resource "aws_secretsmanager_secret_version" "app_config" {
 
 # Secrets Manager - Notion Token
 resource "aws_secretsmanager_secret" "notion_token" {
-  name                    = "${var.project_name}/notion-token"
+  name                    = "${local.resource_prefix}/notion-token"
   description             = "Notion API token for Global Dual Nova RAG Chatbot"
   recovery_window_in_days = 7
 
-  tags = {
-    Name = "${var.project_name}-notion-token"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-notion-token"
+    Type = "Security"
+    Tier = "Application"
+    Service = "SecretsManager"
+    Purpose = "APIToken"
+  })
 }
 
 resource "aws_secretsmanager_secret_version" "notion_token" {
@@ -37,7 +45,7 @@ resource "aws_secretsmanager_secret_version" "notion_token" {
 
 # IAM Role for ECS Task Execution
 resource "aws_iam_role" "ecs_task_execution" {
-  name = "${var.project_name}-ecs-task-execution-role"
+  name = "${local.resource_prefix}-ecs-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -52,9 +60,13 @@ resource "aws_iam_role" "ecs_task_execution" {
     ]
   })
 
-  tags = {
-    Name = "${var.project_name}-ecs-task-execution-role"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-ecs-task-execution-role"
+    Type = "Security"
+    Tier = "Application"
+    Service = "IAM"
+    Purpose = "ECSTaskExecution"
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
@@ -64,7 +76,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
 
 # Additional policy for Secrets Manager access
 resource "aws_iam_role_policy" "ecs_task_execution_secrets" {
-  name = "${var.project_name}-ecs-task-execution-secrets"
+  name = "${local.resource_prefix}-ecs-task-execution-secrets"
   role = aws_iam_role.ecs_task_execution.id
 
   policy = jsonencode({
@@ -86,7 +98,7 @@ resource "aws_iam_role_policy" "ecs_task_execution_secrets" {
 
 # IAM Role for ECS Task
 resource "aws_iam_role" "ecs_task" {
-  name = "${var.project_name}-ecs-task-role"
+  name = "${local.resource_prefix}-ecs-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -101,14 +113,18 @@ resource "aws_iam_role" "ecs_task" {
     ]
   })
 
-  tags = {
-    Name = "${var.project_name}-ecs-task-role"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-ecs-task-role"
+    Type = "Security"
+    Tier = "Application"
+    Service = "IAM"
+    Purpose = "ECSTask"
+  })
 }
 
 # IAM Policy for ECS Task
 resource "aws_iam_role_policy" "ecs_task" {
-  name = "${var.project_name}-ecs-task-policy"
+  name = "${local.resource_prefix}-ecs-task-policy"
   role = aws_iam_role.ecs_task.id
 
   policy = jsonencode({

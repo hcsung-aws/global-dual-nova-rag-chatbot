@@ -1,53 +1,507 @@
 {
   "characters": {
     "Paul": {
-      "description": "Main character in the game",
-      "aliases": ["폴", "paul", "PAUL"],
+      "description": "주인공 캐릭터 이름",
+      "aliases": ["주인공", "폴", "paul", "PAUL"],
       "type": "protagonist"
     },
-    "Sarah": {
-      "description": "Supporting character",
-      "aliases": ["사라", "sarah", "SARAH"],
+    "Hogan": {
+      "description": "게임 내 캐릭터 공대한 이름",
+      "aliases": ["공대한", "hogan", "HOGAN"],
       "type": "supporting"
     },
-    "Mike": {
-      "description": "Antagonist character",
-      "aliases": ["마이크", "mike", "MIKE"],
-      "type": "antagonist"
+    "Manuel": {
+      "description": "게임 내 조연 캐릭터 이름",
+      "aliases": ["마누엘", "manuel", "MANUEL"],
+      "type": "supporting"
+    },
+    "Agent C": {
+      "description": "게임 내 조연 캐릭터 이름",
+      "aliases": ["에이전트 C", "agent c", "AGENT C"],
+      "type": "supporting"
+    }
+  },
+  "game_terms": {
+    "Level Up": {
+      "description": "캐릭터의 레벨이 상승하는 것",
+      "aliases": ["레벨업", "level up", "LEVEL UP"],
+      "category": "basic"
+    },
+    "Experience Points": {
+      "description": "캐릭터 성장을 위한 포인트",
+      "aliases": ["경험치", "XP", "experience points", "EXPERIENCE POINTS"],
+      "category": "basic"
+    },
+    "Health Points": {
+      "description": "캐릭터의 생명력",
+      "aliases": ["체력", "HP", "health points", "HEALTH POINTS"],
+      "category": "basic"
+    },
+    "Mana Points": {
+      "description": "마법 사용을 위한 포인트",
+      "aliases": ["마나", "MP", "mana points", "MANA POINTS"],
+      "category": "basic"
+    },
+    "Skill": {
+      "description": "캐릭터가 사용할 수 있는 특수 능력",
+      "aliases": ["스킬", "skill", "SKILL"],
+      "category": "basic"
+    },
+    "Item": {
+      "description": "게임 내에서 획득할 수 있는 물건",
+      "aliases": ["아이템", "item", "ITEM"],
+      "category": "basic"
+    },
+    "Inventory": {
+      "description": "아이템을 보관하는 공간",
+      "aliases": ["인벤토리", "inventory", "INVENTORY"],
+      "category": "basic"
+    },
+    "Quest": {
+      "description": "게임 내 임무나 과제",
+      "aliases": ["퀘스트", "quest", "QUEST"],
+      "category": "basic"
+    },
+    "Dungeon": {
+      "description": "몬스터가 있는 지하 공간",
+      "aliases": ["던전", "dungeon", "DUNGEON"],
+      "category": "basic"
+    },
+    "Boss": {
+      "description": "강력한 적 몬스터",
+      "aliases": ["보스", "boss", "BOSS"],
+      "category": "basic"
+    },
+    "Guild": {
+      "description": "플레이어들의 조합이나 클랜",
+      "aliases": ["길드", "guild", "GUILD"],
+      "category": "basic"
+    },
+    "Party": {
+      "description": "함께 게임을 하는 플레이어 그룹",
+      "aliases": ["파티", "party", "PARTY"],
+      "category": "basic"
+    },
+    "Player vs Player": {
+      "description": "플레이어 대 플레이어 전투",
+      "aliases": ["PvP", "pvp", "PVP"],
+      "category": "basic"
+    },
+    "Player vs Environment": {
+      "description": "플레이어 대 환경(몬스터) 전투",
+      "aliases": ["PvE", "pve", "PVE"],
+      "category": "basic"
+    },
+    "Non-Player Character": {
+      "description": "컴퓨터가 조작하는 캐릭터",
+      "aliases": ["NPC", "npc"],
+      "category": "basic"
+    }
+  },
+  "combat_terms": {
+    "Attack Power": {
+      "description": "공격 시 가하는 데미지",
+      "aliases": ["공격력", "attack power", "ATTACK POWER"],
+      "category": "combat"
+    },
+    "Defense": {
+      "description": "받는 데미지를 줄이는 능력",
+      "aliases": ["방어력", "defense", "DEFENSE"],
+      "category": "combat"
+    },
+    "Critical Hit": {
+      "description": "치명타, 높은 데미지를 주는 공격",
+      "aliases": ["크리티컬", "critical hit", "CRITICAL HIT"],
+      "category": "combat"
+    },
+    "Buff": {
+      "description": "능력치를 향상시키는 효과",
+      "aliases": ["버프", "buff", "BUFF"],
+      "category": "combat"
+    },
+    "Debuff": {
+      "description": "능력치를 감소시키는 효과",
+      "aliases": ["디버프", "debuff", "DEBUFF"],
+      "category": "combat"
+    },
+    "Healing": {
+      "description": "체력을 회복하는 것",
+      "aliases": ["힐링", "healing", "HEALING"],
+      "category": "combat"
+    },
+    "Respawn": {
+      "description": "죽은 후 다시 살아나는 것",
+      "aliases": ["리스폰", "respawn", "RESPAWN"],
+      "category": "combat"
+    },
+    "Cooldown": {
+      "description": "스킬 재사용 대기시간",
+      "aliases": ["쿨다운", "cooldown", "COOLDOWN"],
+      "category": "combat"
+    },
+    "Combo": {
+      "description": "연속 공격",
+      "aliases": ["콤보", "combo", "COMBO"],
+      "category": "combat"
+    },
+    "Damage over Time": {
+      "description": "지속 데미지",
+      "aliases": ["도트 데미지", "DoT", "damage over time", "DAMAGE OVER TIME"],
+      "category": "combat"
     }
   },
   "items": {
-    "Sword": {
-      "description": "Basic weapon",
-      "aliases": ["검", "sword", "SWORD"],
-      "category": "weapon"
+    "Equipment": {
+      "description": "캐릭터가 착용하는 아이템",
+      "aliases": ["장비", "equipment", "EQUIPMENT"],
+      "category": "item"
     },
-    "Shield": {
-      "description": "Defensive equipment",
-      "aliases": ["방패", "shield", "SHIELD"],
-      "category": "armor"
+    "Weapon": {
+      "description": "공격용 장비",
+      "aliases": ["무기", "weapon", "WEAPON"],
+      "category": "item"
     },
-    "Potion": {
-      "description": "Health recovery item",
-      "aliases": ["포션", "potion", "POTION"],
-      "category": "consumable"
+    "Armor": {
+      "description": "방어용 장비",
+      "aliases": ["방어구", "armor", "ARMOR"],
+      "category": "item"
+    },
+    "Consumable": {
+      "description": "사용하면 없어지는 아이템",
+      "aliases": ["소모품", "consumable", "CONSUMABLE"],
+      "category": "item"
+    },
+    "Rare Item": {
+      "description": "희귀한 아이템",
+      "aliases": ["레어 아이템", "rare item", "RARE ITEM"],
+      "category": "item"
+    },
+    "Epic Item": {
+      "description": "매우 희귀한 아이템",
+      "aliases": ["에픽 아이템", "epic item", "EPIC ITEM"],
+      "category": "item"
+    },
+    "Legendary": {
+      "description": "전설급 아이템",
+      "aliases": ["레전더리", "legendary", "LEGENDARY"],
+      "category": "item"
+    },
+    "Set Item": {
+      "description": "세트로 착용하면 추가 효과가 있는 아이템",
+      "aliases": ["세트 아이템", "set item", "SET ITEM"],
+      "category": "item"
+    },
+    "Enhancement": {
+      "description": "아이템의 성능을 향상시키는 것",
+      "aliases": ["강화", "enhancement", "upgrade", "ENHANCEMENT", "UPGRADE"],
+      "category": "item"
+    },
+    "Enchant": {
+      "description": "아이템에 마법 효과를 부여하는 것",
+      "aliases": ["인챈트", "enchant", "ENCHANT"],
+      "category": "item"
     }
   },
-  "locations": {
-    "Forest": {
-      "description": "Starting area",
-      "aliases": ["숲", "forest", "FOREST"],
-      "type": "outdoor"
+  "system_terms": {
+    "Server": {
+      "description": "게임이 운영되는 컴퓨터",
+      "aliases": ["서버", "server", "SERVER"],
+      "category": "system"
     },
-    "Castle": {
-      "description": "Main hub",
-      "aliases": ["성", "castle", "CASTLE"],
-      "type": "building"
+    "Channel": {
+      "description": "서버 내의 구역",
+      "aliases": ["채널", "channel", "CHANNEL"],
+      "category": "system"
     },
-    "Dungeon": {
-      "description": "Challenge area",
-      "aliases": ["던전", "dungeon", "DUNGEON"],
-      "type": "underground"
+    "Login": {
+      "description": "게임에 접속하는 것",
+      "aliases": ["로그인", "login", "LOGIN"],
+      "category": "system"
+    },
+    "Logout": {
+      "description": "게임에서 나가는 것",
+      "aliases": ["로그아웃", "logout", "LOGOUT"],
+      "category": "system"
+    },
+    "Save": {
+      "description": "게임 진행 상황을 저장하는 것",
+      "aliases": ["세이브", "save", "SAVE"],
+      "category": "system"
+    },
+    "Load": {
+      "description": "저장된 게임을 불러오는 것",
+      "aliases": ["로드", "load", "LOAD"],
+      "category": "system"
+    },
+    "Patch": {
+      "description": "게임 업데이트",
+      "aliases": ["패치", "patch", "PATCH"],
+      "category": "system"
+    },
+    "Bug": {
+      "description": "게임의 오류나 결함",
+      "aliases": ["버그", "bug", "BUG"],
+      "category": "system"
+    },
+    "Lag": {
+      "description": "네트워크 지연으로 인한 끊김 현상",
+      "aliases": ["래그", "lag", "LAG"],
+      "category": "system"
+    },
+    "Ping": {
+      "description": "네트워크 응답 속도",
+      "aliases": ["핑", "ping", "PING"],
+      "category": "system"
+    }
+  },
+  "character_terms": {
+    "Character": {
+      "description": "플레이어가 조작하는 게임 내 인물",
+      "aliases": ["캐릭터", "character", "CHARACTER"],
+      "category": "character"
+    },
+    "Class": {
+      "description": "캐릭터의 직업이나 유형",
+      "aliases": ["클래스", "class", "CLASS"],
+      "category": "character"
+    },
+    "Stats": {
+      "description": "캐릭터의 능력치",
+      "aliases": ["스탯", "stats", "STATS"],
+      "category": "character"
+    },
+    "Skill Tree": {
+      "description": "스킬 습득 체계",
+      "aliases": ["스킬 트리", "skill tree", "SKILL TREE"],
+      "category": "character"
+    },
+    "Reroll": {
+      "description": "캐릭터를 다시 만드는 것",
+      "aliases": ["리롤", "reroll", "REROLL"],
+      "category": "character"
+    },
+    "Customization": {
+      "description": "캐릭터 외형 변경",
+      "aliases": ["커스터마이징", "customization", "CUSTOMIZATION"],
+      "category": "character"
+    },
+    "Avatar": {
+      "description": "플레이어를 대표하는 캐릭터",
+      "aliases": ["아바타", "avatar", "AVATAR"],
+      "category": "character"
+    },
+    "Nickname": {
+      "description": "게임 내 사용자 이름",
+      "aliases": ["닉네임", "nickname", "NICKNAME"],
+      "category": "character"
+    }
+  },
+  "gameplay_terms": {
+    "Farming": {
+      "description": "아이템이나 경험치를 반복적으로 획득하는 것",
+      "aliases": ["파밍", "farming", "FARMING"],
+      "category": "gameplay"
+    },
+    "Grinding": {
+      "description": "반복적인 작업을 통한 성장",
+      "aliases": ["그라인딩", "grinding", "GRINDING"],
+      "category": "gameplay"
+    },
+    "Speedrun": {
+      "description": "최단 시간 내 게임 클리어",
+      "aliases": ["스피드런", "speedrun", "SPEEDRUN"],
+      "category": "gameplay"
+    },
+    "Solo Play": {
+      "description": "혼자서 게임하는 것",
+      "aliases": ["솔로 플레이", "solo play", "SOLO PLAY"],
+      "category": "gameplay"
+    },
+    "Multiplayer": {
+      "description": "여러 명이 함께 게임하는 것",
+      "aliases": ["멀티 플레이", "multiplayer", "MULTIPLAYER"],
+      "category": "gameplay"
+    },
+    "Ranking": {
+      "description": "순위",
+      "aliases": ["랭킹", "ranking", "RANKING"],
+      "category": "gameplay"
+    },
+    "Leaderboard": {
+      "description": "순위표",
+      "aliases": ["리더보드", "leaderboard", "LEADERBOARD"],
+      "category": "gameplay"
+    },
+    "Tournament": {
+      "description": "경기 대회",
+      "aliases": ["토너먼트", "tournament", "TOURNAMENT"],
+      "category": "gameplay"
+    },
+    "Season": {
+      "description": "게임의 특정 기간",
+      "aliases": ["시즌", "season", "SEASON"],
+      "category": "gameplay"
+    },
+    "Event": {
+      "description": "특별한 게임 내 행사",
+      "aliases": ["이벤트", "event", "EVENT"],
+      "category": "gameplay"
+    }
+  },
+  "online_terms": {
+    "Matchmaking": {
+      "description": "비슷한 실력의 플레이어끼리 매칭",
+      "aliases": ["매치메이킹", "matchmaking", "MATCHMAKING"],
+      "category": "online"
+    },
+    "Lobby": {
+      "description": "게임 시작 전 대기실",
+      "aliases": ["로비", "lobby", "LOBBY"],
+      "category": "online"
+    },
+    "Create Room": {
+      "description": "게임방 생성",
+      "aliases": ["방 만들기", "create room", "CREATE ROOM"],
+      "category": "online"
+    },
+    "Join Room": {
+      "description": "게임방 입장",
+      "aliases": ["방 참가", "join room", "JOIN ROOM"],
+      "category": "online"
+    },
+    "Kick": {
+      "description": "플레이어를 강제로 내보내는 것",
+      "aliases": ["킥", "kick", "KICK"],
+      "category": "online"
+    },
+    "Ban": {
+      "description": "계정 정지",
+      "aliases": ["밴", "ban", "BAN"],
+      "category": "online"
+    },
+    "Report": {
+      "description": "부정행위나 욕설 신고",
+      "aliases": ["신고", "report", "REPORT"],
+      "category": "online"
+    },
+    "Chat": {
+      "description": "텍스트로 대화하는 것",
+      "aliases": ["채팅", "chat", "CHAT"],
+      "category": "online"
+    },
+    "Voice Chat": {
+      "description": "음성으로 대화하는 것",
+      "aliases": ["음성 채팅", "voice chat", "VOICE CHAT"],
+      "category": "online"
+    },
+    "Add Friend": {
+      "description": "친구 목록에 추가",
+      "aliases": ["친구 추가", "add friend", "ADD FRIEND"],
+      "category": "online"
+    }
+  },
+  "mobile_terms": {
+    "Gacha": {
+      "description": "랜덤 뽑기 시스템",
+      "aliases": ["가챠", "gacha", "GACHA"],
+      "category": "mobile"
+    },
+    "Draw": {
+      "description": "랜덤으로 아이템이나 캐릭터 획득",
+      "aliases": ["뽑기", "draw", "pull", "DRAW", "PULL"],
+      "category": "mobile"
+    },
+    "In-app Purchase": {
+      "description": "게임 내 결제",
+      "aliases": ["과금", "in-app purchase", "IN-APP PURCHASE"],
+      "category": "mobile"
+    },
+    "Free-to-play": {
+      "description": "돈을 쓰지 않고 게임하는 것",
+      "aliases": ["무과금", "free-to-play", "FREE-TO-PLAY"],
+      "category": "mobile"
+    },
+    "Light Spender": {
+      "description": "적은 금액만 결제하는 것",
+      "aliases": ["소과금", "light spender", "LIGHT SPENDER"],
+      "category": "mobile"
+    },
+    "Medium Spender": {
+      "description": "중간 정도 금액을 결제하는 것",
+      "aliases": ["중과금", "medium spender", "MEDIUM SPENDER"],
+      "category": "mobile"
+    },
+    "Heavy Spender": {
+      "description": "많은 금액을 결제하는 것",
+      "aliases": ["고과금", "heavy spender", "HEAVY SPENDER"],
+      "category": "mobile"
+    },
+    "Daily Mission": {
+      "description": "매일 수행할 수 있는 임무",
+      "aliases": ["일일 미션", "daily mission", "DAILY MISSION"],
+      "category": "mobile"
+    },
+    "Weekly Mission": {
+      "description": "매주 수행할 수 있는 임무",
+      "aliases": ["주간 미션", "weekly mission", "WEEKLY MISSION"],
+      "category": "mobile"
+    },
+    "Daily Check-in": {
+      "description": "매일 접속 보상",
+      "aliases": ["출석 체크", "daily check-in", "DAILY CHECK-IN"],
+      "category": "mobile"
+    },
+    "Stamina": {
+      "description": "게임 플레이를 위한 에너지",
+      "aliases": ["스태미나", "stamina", "STAMINA"],
+      "category": "mobile"
+    }
+  },
+  "cs_terms": {
+    "Customer Support": {
+      "description": "고객 서비스",
+      "aliases": ["고객 지원", "customer support", "CUSTOMER SUPPORT"],
+      "category": "cs"
+    },
+    "Inquiry": {
+      "description": "질문이나 요청",
+      "aliases": ["문의", "inquiry", "INQUIRY"],
+      "category": "cs"
+    },
+    "Refund": {
+      "description": "결제 취소 및 돈 돌려받기",
+      "aliases": ["환불", "refund", "REFUND"],
+      "category": "cs"
+    },
+    "Account Recovery": {
+      "description": "잃어버린 계정 되찾기",
+      "aliases": ["계정 복구", "account recovery", "ACCOUNT RECOVERY"],
+      "category": "cs"
+    },
+    "Password Reset": {
+      "description": "비밀번호 변경",
+      "aliases": ["비밀번호 재설정", "password reset", "PASSWORD RESET"],
+      "category": "cs"
+    },
+    "Login Issue": {
+      "description": "접속 관련 문제",
+      "aliases": ["로그인 문제", "login issue", "LOGIN ISSUE"],
+      "category": "cs"
+    },
+    "Payment Issue": {
+      "description": "결제 관련 문제",
+      "aliases": ["결제 문제", "payment issue", "PAYMENT ISSUE"],
+      "category": "cs"
+    },
+    "Game Error": {
+      "description": "게임 실행 중 발생하는 문제",
+      "aliases": ["게임 오류", "game error", "GAME ERROR"],
+      "category": "cs"
+    },
+    "Connection Issue": {
+      "description": "네트워크 연결 문제",
+      "aliases": ["연결 문제", "connection issue", "CONNECTION ISSUE"],
+      "category": "cs"
     }
   }
 }

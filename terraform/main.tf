@@ -12,11 +12,38 @@ provider "aws" {
   region = var.aws_region
   
   default_tags {
-    tags = {
-      Project     = "GlobalDualNovaRAGChatbot"
-      Environment = var.environment
-      ManagedBy   = "Terraform"
-    }
+    tags = local.common_tags
+  }
+}
+
+# 표준화된 명명 규칙과 태그 시스템
+locals {
+  # 표준 명명 패턴: ${project_name}-${service}-${resource_type}-${environment}
+  resource_prefix = "${var.project_name}-${var.environment}"
+  
+  # 표준화된 공통 태그
+  common_tags = merge(var.tags, {
+    Project      = var.project_name
+    Environment  = var.environment
+    ManagedBy    = "Terraform"
+    Owner        = var.owner
+    CostCenter   = var.cost_center
+    CreatedDate  = formatdate("YYYY-MM-DD", timestamp())
+    Application  = "global-dual-nova-rag-chatbot"
+  })
+  
+  # 서비스별 명명 규칙
+  naming = {
+    vpc                = "${local.resource_prefix}-vpc"
+    internet_gateway   = "${local.resource_prefix}-igw"
+    public_subnet      = "${local.resource_prefix}-public-subnet"
+    private_subnet     = "${local.resource_prefix}-private-subnet"
+    nat_gateway        = "${local.resource_prefix}-nat-gateway"
+    nat_eip           = "${local.resource_prefix}-nat-eip"
+    public_route_table = "${local.resource_prefix}-public-rt"
+    private_route_table = "${local.resource_prefix}-private-rt"
+    alb_security_group = "${local.resource_prefix}-alb-sg"
+    ecs_security_group = "${local.resource_prefix}-ecs-sg"
   }
 }
 
@@ -33,18 +60,22 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = {
-    Name = "${var.project_name}-vpc"
-  }
+  tags = merge(local.common_tags, {
+    Name = local.naming.vpc
+    Type = "Network"
+    Tier = "Infrastructure"
+  })
 }
 
 # Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name = "${var.project_name}-igw"
-  }
+  tags = merge(local.common_tags, {
+    Name = local.naming.internet_gateway
+    Type = "Network"
+    Tier = "Infrastructure"
+  })
 }
 
 # Public Subnets
@@ -56,10 +87,13 @@ resource "aws_subnet" "public" {
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
-  tags = {
-    Name = "${var.project_name}-public-subnet-${count.index + 1}"
-    Type = "Public"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.naming.public_subnet}-${count.index + 1}"
+    Type = "Network"
+    Tier = "Public"
+    SubnetType = "Public"
+    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
+  })
 }
 
 # Private Subnets
@@ -70,10 +104,13 @@ resource "aws_subnet" "private" {
   cidr_block        = var.private_subnet_cidrs[count.index]
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
-  tags = {
-    Name = "${var.project_name}-private-subnet-${count.index + 1}"
-    Type = "Private"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.naming.private_subnet}-${count.index + 1}"
+    Type = "Network"
+    Tier = "Private"
+    SubnetType = "Private"
+    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
+  })
 }
 
 # NAT Gateway
@@ -83,9 +120,12 @@ resource "aws_eip" "nat" {
   domain = "vpc"
   depends_on = [aws_internet_gateway.main]
 
-  tags = {
-    Name = "${var.project_name}-nat-eip-${count.index + 1}"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.naming.nat_eip}-${count.index + 1}"
+    Type = "Network"
+    Tier = "Infrastructure"
+    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
+  })
 }
 
 resource "aws_nat_gateway" "main" {
@@ -94,9 +134,12 @@ resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
 
-  tags = {
-    Name = "${var.project_name}-nat-gateway-${count.index + 1}"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.naming.nat_gateway}-${count.index + 1}"
+    Type = "Network"
+    Tier = "Infrastructure"
+    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
+  })
 
   depends_on = [aws_internet_gateway.main]
 }
@@ -110,9 +153,12 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.main.id
   }
 
-  tags = {
-    Name = "${var.project_name}-public-rt"
-  }
+  tags = merge(local.common_tags, {
+    Name = local.naming.public_route_table
+    Type = "Network"
+    Tier = "Infrastructure"
+    RouteType = "Public"
+  })
 }
 
 resource "aws_route_table" "private" {
@@ -125,9 +171,13 @@ resource "aws_route_table" "private" {
     nat_gateway_id = aws_nat_gateway.main[count.index].id
   }
 
-  tags = {
-    Name = "${var.project_name}-private-rt-${count.index + 1}"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.naming.private_route_table}-${count.index + 1}"
+    Type = "Network"
+    Tier = "Infrastructure"
+    RouteType = "Private"
+    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
+  })
 }
 
 # Route Table Associations
@@ -147,7 +197,7 @@ resource "aws_route_table_association" "private" {
 
 # Security Groups
 resource "aws_security_group" "alb" {
-  name_prefix = "${var.project_name}-alb-"
+  name_prefix = "${local.resource_prefix}-alb-"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -173,13 +223,20 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "${var.project_name}-alb-sg"
+  tags = merge(local.common_tags, {
+    Name = local.naming.alb_security_group
+    Type = "Security"
+    Tier = "LoadBalancer"
+    Service = "ALB"
+  })
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
 resource "aws_security_group" "ecs" {
-  name_prefix = "${var.project_name}-ecs-"
+  name_prefix = "${local.resource_prefix}-ecs-"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -197,7 +254,14 @@ resource "aws_security_group" "ecs" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "${var.project_name}-ecs-sg"
+  tags = merge(local.common_tags, {
+    Name = local.naming.ecs_security_group
+    Type = "Security"
+    Tier = "Application"
+    Service = "ECS"
+  })
+
+  lifecycle {
+    create_before_destroy = true
   }
 }

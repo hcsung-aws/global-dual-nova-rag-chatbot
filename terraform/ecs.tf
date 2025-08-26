@@ -1,20 +1,23 @@
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
-  name = "${var.project_name}-cluster"
+  name = "${local.resource_prefix}-cluster"
 
   setting {
     name  = "containerInsights"
     value = "enabled"
   }
 
-  tags = {
-    Name = "${var.project_name}-cluster"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-cluster"
+    Type = "Compute"
+    Tier = "Application"
+    Service = "ECS"
+  })
 }
 
 # ECS Task Definition
 resource "aws_ecs_task_definition" "main" {
-  family                   = "${var.project_name}-task"
+  family                   = "${local.resource_prefix}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.ecs_cpu
@@ -24,7 +27,7 @@ resource "aws_ecs_task_definition" "main" {
 
   container_definitions = jsonencode([
     {
-      name  = "${var.project_name}-container"
+      name  = "${local.resource_prefix}-container"
       image = var.container_image
       
       portMappings = [
@@ -84,14 +87,17 @@ resource "aws_ecs_task_definition" "main" {
     }
   ])
 
-  tags = {
-    Name = "${var.project_name}-task-definition"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-task-definition"
+    Type = "Compute"
+    Tier = "Application"
+    Service = "ECS"
+  })
 }
 
 # ECS Service
 resource "aws_ecs_service" "main" {
-  name            = "${var.project_name}-service"
+  name            = "${local.resource_prefix}-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.main.arn
   desired_count   = var.ecs_desired_count
@@ -106,7 +112,7 @@ resource "aws_ecs_service" "main" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.main.arn
-    container_name   = "${var.project_name}-container"
+    container_name   = "${local.resource_prefix}-container"
     container_port   = 8501
   }
 
@@ -128,9 +134,12 @@ resource "aws_ecs_service" "main" {
     aws_iam_role_policy_attachment.ecs_task
   ]
 
-  tags = {
-    Name = "${var.project_name}-service"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-service"
+    Type = "Compute"
+    Tier = "Application"
+    Service = "ECS"
+  })
 }
 
 # Auto Scaling Target
@@ -143,16 +152,19 @@ resource "aws_appautoscaling_target" "ecs" {
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 
-  tags = {
-    Name = "${var.project_name}-autoscaling-target"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-autoscaling-target"
+    Type = "Compute"
+    Tier = "Application"
+    Service = "AutoScaling"
+  })
 }
 
 # Auto Scaling Policy - CPU
 resource "aws_appautoscaling_policy" "ecs_cpu" {
   count = var.enable_auto_scaling ? 1 : 0
 
-  name               = "${var.project_name}-cpu-scaling"
+  name               = "${local.resource_prefix}-cpu-scaling"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs[0].resource_id
   scalable_dimension = aws_appautoscaling_target.ecs[0].scalable_dimension
@@ -170,7 +182,7 @@ resource "aws_appautoscaling_policy" "ecs_cpu" {
 resource "aws_appautoscaling_policy" "ecs_memory" {
   count = var.enable_auto_scaling ? 1 : 0
 
-  name               = "${var.project_name}-memory-scaling"
+  name               = "${local.resource_prefix}-memory-scaling"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs[0].resource_id
   scalable_dimension = aws_appautoscaling_target.ecs[0].scalable_dimension
@@ -188,10 +200,13 @@ resource "aws_appautoscaling_policy" "ecs_memory" {
 resource "aws_cloudwatch_log_group" "ecs" {
   count = var.enable_logging ? 1 : 0
 
-  name              = "/ecs/${var.project_name}"
+  name              = "/ecs/${local.resource_prefix}"
   retention_in_days = var.log_retention_days
 
-  tags = {
-    Name = "${var.project_name}-log-group"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${local.resource_prefix}-log-group"
+    Type = "Logging"
+    Tier = "Monitoring"
+    Service = "CloudWatch"
+  })
 }
