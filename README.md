@@ -198,6 +198,20 @@ with ThreadPoolExecutor(max_workers=2) as executor:
 
 ## 🔒 보안
 
+### 접근 제어 설정
+기본적으로 **공개 접근**이 가능하도록 설정되어 있습니다. 프로덕션 환경에서는 **반드시 접근을 제한**하세요:
+
+```hcl
+# terraform.tfvars - 제한된 접근 (권장)
+restrict_public_access = true
+admin_ip_addresses     = [
+  "203.0.113.1",    # 사무실 IP
+  "198.51.100.1"    # 집 IP
+]
+```
+
+🛡️ **보안 설정 가이드**: [SECURITY_CONFIGURATION.md](docs/SECURITY_CONFIGURATION.md)
+
 ### 구현된 모범 사례
 - **시크릿 관리**: AWS Secrets Manager에 모든 민감한 데이터 저장
 - **네트워크 보안**: 프라이빗 서브넷이 있는 VPC

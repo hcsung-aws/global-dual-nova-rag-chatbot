@@ -147,3 +147,50 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# Security and Access Control Variables
+variable "allowed_cidr_blocks" {
+  description = "List of CIDR blocks allowed to access the application"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  
+  validation {
+    condition = length(var.allowed_cidr_blocks) > 0
+    error_message = "At least one CIDR block must be specified."
+  }
+}
+
+variable "restrict_public_access" {
+  description = "Whether to restrict public access (recommended for production)"
+  type        = bool
+  default     = false
+}
+
+variable "admin_ip_addresses" {
+  description = "List of admin IP addresses for restricted access (when restrict_public_access is true)"
+  type        = list(string)
+  default     = []
+  
+  validation {
+    condition = var.restrict_public_access == false || length(var.admin_ip_addresses) > 0
+    error_message = "Admin IP addresses must be provided when restrict_public_access is true."
+  }
+}
+
+variable "enable_vpc_access" {
+  description = "Allow access from VPC CIDR (useful for internal testing)"
+  type        = bool
+  default     = false
+}
+
+variable "custom_access_rules" {
+  description = "Custom access rules for fine-grained control"
+  type = list(object({
+    description = string
+    cidr_block  = string
+    from_port   = number
+    to_port     = number
+    protocol    = string
+  }))
+  default = []
+}

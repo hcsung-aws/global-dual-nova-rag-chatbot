@@ -40,9 +40,80 @@ log_retention_days = 7
 # ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
 # domain_name = "chatbot.example.com"
 
+# =============================================================================
+# SECURITY AND ACCESS CONTROL CONFIGURATION
+# =============================================================================
+
+# Option 1: Public Access (NOT RECOMMENDED for production)
+# Allows access from anywhere on the internet
+restrict_public_access = false
+allowed_cidr_blocks = ["0.0.0.0/0"]
+
+# Option 2: Restricted Access (RECOMMENDED for production)
+# Only allows access from specified IP addresses
+# Uncomment and configure the following lines:
+# restrict_public_access = true
+# admin_ip_addresses = [
+#   "203.0.113.1",    # Replace with your office IP
+#   "198.51.100.1",   # Replace with your home IP
+#   "192.0.2.1"       # Add more IPs as needed
+# ]
+
+# Option 3: Custom Access Rules (Advanced)
+# Define specific CIDR blocks and ports for fine-grained control
+# custom_access_rules = [
+#   {
+#     description = "Office network HTTP access"
+#     cidr_block  = "203.0.113.0/24"
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#   },
+#   {
+#     description = "VPN network HTTPS access"
+#     cidr_block  = "198.51.100.0/24"
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#   }
+# ]
+
+# VPC Access (useful for testing from AWS environment)
+enable_vpc_access = false
+
+# =============================================================================
+# DEPLOYMENT EXAMPLES
+# =============================================================================
+
+# Example 1: Development Environment (Open Access)
+# restrict_public_access = false
+# allowed_cidr_blocks = ["0.0.0.0/0"]
+# enable_vpc_access = true
+
+# Example 2: Production Environment (Restricted Access)
+# restrict_public_access = true
+# admin_ip_addresses = ["YOUR.IP.ADDRESS.HERE"]
+# enable_https = true
+# ssl_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-cert-id"
+
+# Example 3: Corporate Environment (Network-based Access)
+# restrict_public_access = false
+# allowed_cidr_blocks = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+# custom_access_rules = [
+#   {
+#     description = "Corporate network"
+#     cidr_block  = "203.0.113.0/24"
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#   }
+# ]
+
 # Additional Tags
 tags = {
   Owner = "YourName"
   Team = "YourTeam"
   CostCenter = "YourCostCenter"
+  Environment = "production"
+  Project = "Global Dual Nova Chatbot"
 }
