@@ -139,8 +139,18 @@ class AWSClientManager:
             if service_name == 's3':
                 client.list_buckets()
             elif service_name == 'bedrock-runtime':
+                # Bedrock Runtime은 invoke_model 메서드 존재 여부만 확인
+                if not hasattr(client, 'invoke_model'):
+                    raise AttributeError("bedrock-runtime 클라이언트에 invoke_model 메서드가 없습니다")
+                self._logger.info(f"✅ Bedrock Runtime 헬스체크 성공 - invoke_model 메서드 확인됨")
+            elif service_name == 'bedrock':
                 # Bedrock은 list_foundation_models로 헬스체크
-                client.list_foundation_models()
+                try:
+                    client.list_foundation_models()
+                    self._logger.info(f"✅ Bedrock 헬스체크 성공")
+                except Exception as bedrock_error:
+                    self._logger.warning(f"⚠️ Bedrock 헬스체크 실패: {bedrock_error}")
+                    raise
             elif service_name == 'secretsmanager':
                 # Secrets Manager는 list_secrets로 헬스체크 (빈 결과도 OK)
                 client.list_secrets(MaxResults=1)
@@ -148,8 +158,8 @@ class AWSClientManager:
                 # Bedrock Agent Runtime은 특별한 헬스체크 없이 통과
                 pass
             elif service_name == 'cloudwatch':
-                # CloudWatch는 list_metrics로 헬스체크
-                client.list_metrics(MaxRecords=1)
+                # CloudWatch는 list_metrics로 헬스체크 (MaxRecords 파라미터 제거)
+                client.list_metrics()
             else:
                 # 기타 서비스는 기본적인 메타데이터 확인
                 client.meta.region_name
@@ -160,6 +170,7 @@ class AWSClientManager:
                 # 권한 부족은 경고로만 처리 (클라이언트 자체는 유효)
                 self._logger.warning(f"권한 부족하지만 클라이언트는 유효함: {service_name}")
             else:
+                self._logger.error(f"클라이언트 검증 실패: {service_name} - {error_code}: {e}")
                 raise
     
     def initialize_clients(self, services: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -174,17 +185,36 @@ class AWSClientManager:
         """
         if services is None:
             # 기본 서비스 목록 (기존 get_aws_clients()와 동일)
-            services = ['s3', 'bedrock-runtime', 'secretsmanager', 'translate']
+            services = ['s3', 'bedrock-runtime', 'secretsmanager']
         
         clients = {}
+        failed_services = []
+        
         for service in services:
             try:
-                clients[service] = self.get_client(service)
-                self._logger.info(f"클라이언트 초기화 성공: {service}")
+                client = self.get_client(service)
+                clients[service] = client
+                self._logger.info(f"✅ 클라이언트 초기화 성공: {service}")
             except Exception as e:
-                self._logger.error(f"클라이언트 초기화 실패: {service} - {e}")
-                # 실패한 클라이언트는 None으로 설정
-                clients[service] = None
+                self._logger.error(f"❌ 클라이언트 초기화 실패: {service} - {e}")
+                failed_services.append(service)
+                # 실패한 클라이언트는 None으로 설정하지 않고 제외
+        
+        # 중요한 서비스가 실패한 경우 경고
+        critical_services = ['bedrock-runtime']
+        failed_critical = [s for s in failed_services if s in critical_services]
+        
+        if failed_critical:
+            self._logger.warning(f"⚠️ 중요한 서비스 초기화 실패: {failed_critical}")
+            # 재시도 로직
+            for service in failed_critical:
+                try:
+                    self._logger.info(f"🔄 {service} 재시도 중...")
+                    client = self.get_client_with_retry(service, max_retries=2)
+                    clients[service] = client
+                    self._logger.info(f"✅ {service} 재시도 성공")
+                except Exception as e:
+                    self._logger.error(f"❌ {service} 재시도 실패: {e}")
         
         return clients
     

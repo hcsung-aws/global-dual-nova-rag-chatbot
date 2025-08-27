@@ -173,7 +173,7 @@ resource "aws_iam_role_policy" "ecs_task" {
           "s3:GetObject",
           "s3:PutObject"
         ]
-        Resource = var.s3_bucket_arns
+        Resource = [for arn in var.s3_bucket_arns : "${arn}/*"]
       },
       {
         Effect = "Allow"
@@ -195,6 +195,15 @@ resource "aws_iam_role_policy" "ecs_task" {
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:ListMetrics",
+          "cloudwatch:GetMetricData"
         ]
         Resource = "*"
       }

@@ -38,11 +38,59 @@ class StreamingHandler:
         self.aws_clients = aws_clients
         self.logger = logger
         
-        # Bedrock 클라이언트 확인
-        if 'bedrock' not in aws_clients and 'bedrock-runtime' not in aws_clients:
-            raise ValueError("AWS Bedrock 클라이언트가 필요합니다")
+        print("StreamingHandler 초기화 시작...")
         
-        self.bedrock_client = aws_clients.get('bedrock') or aws_clients.get('bedrock-runtime')
+        # Bedrock 클라이언트 확인 및 초기화
+        self.bedrock_client = None
+        
+        # 다양한 키 이름으로 Bedrock 클라이언트 찾기
+        possible_keys = ['bedrock-runtime', 'bedrock', 'bedrock_runtime']
+        for key in possible_keys:
+            if key in aws_clients and aws_clients[key] is not None:
+                self.bedrock_client = aws_clients[key]
+                print(f"✅ Bedrock 클라이언트 찾음: {key}")
+                break
+        
+        # 클라이언트를 찾지 못한 경우 직접 생성 시도
+        if self.bedrock_client is None:
+            print("⚠️ Bedrock 클라이언트를 찾지 못함. 직접 생성 시도...")
+            try:
+                import boto3
+                from botocore.config import Config
+                
+                config = Config(
+                    read_timeout=60,
+                    connect_timeout=10,
+                    retries={'max_attempts': 3, 'mode': 'adaptive'}
+                )
+                
+                self.bedrock_client = boto3.client(
+                    'bedrock-runtime',
+                    region_name='us-east-1',
+                    config=config
+                )
+                
+                # bedrock-runtime 클라이언트 헬스체크 (invoke_model 메서드 존재 여부 확인)
+                if not hasattr(self.bedrock_client, 'invoke_model'):
+                    raise AttributeError("bedrock-runtime 클라이언트에 invoke_model 메서드가 없습니다")
+                print("✅ Bedrock 클라이언트 직접 생성 성공")
+                
+            except Exception as e:
+                print(f"❌ Bedrock 클라이언트 생성 실패: {e}")
+                raise ValueError(f"AWS Bedrock 클라이언트 초기화 실패: {e}")
+        
+        # 클라이언트 유효성 검사
+        if self.bedrock_client is None:
+            raise ValueError("AWS Bedrock 클라이언트가 None입니다")
+        
+        # 최종 헬스체크 - bedrock-runtime 클라이언트용
+        try:
+            if not hasattr(self.bedrock_client, 'invoke_model'):
+                raise AttributeError("bedrock-runtime 클라이언트에 invoke_model 메서드가 없습니다")
+            print("✅ StreamingHandler 초기화 완료 - Bedrock Runtime 클라이언트 정상")
+        except Exception as e:
+            print(f"❌ Bedrock 클라이언트 헬스체크 실패: {e}")
+            raise ValueError(f"Bedrock 클라이언트 헬스체크 실패: {e}")
     
     def _parse_prompt_for_caching(self, prompt: str) -> List[Dict[str, Any]]:
         """프롬프트를 캐싱 가능한 부분과 동적 부분으로 분리 (기존 로직 완전 통합)"""

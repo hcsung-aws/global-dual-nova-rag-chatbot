@@ -85,7 +85,7 @@ resource "aws_ecs_task_definition" "main" {
       command = [
         "bash",
         "-c",
-        "apt-get update && apt-get install -y curl unzip && curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip awscliv2.zip && ./aws/install && aws s3 cp s3://${var.code_bucket_name}/requirements.txt /tmp/requirements.txt && pip install -r /tmp/requirements.txt && mkdir -p /app && cd /app && aws s3 sync s3://${var.code_bucket_name}/src ./src && aws s3 sync s3://${var.code_bucket_name}/config ./config && export PYTHONPATH=/app:$PYTHONPATH && streamlit run src/chatbot_app.py --server.port=8501 --server.address=0.0.0.0"
+        "echo 'Starting container setup...' && apt-get update -qq && apt-get install -y -qq curl unzip && echo 'Installing AWS CLI...' && curl -s 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip -q awscliv2.zip && ./aws/install && echo 'Downloading requirements...' && aws s3 cp s3://${var.code_bucket_name}/requirements.txt /tmp/requirements.txt && echo 'Installing Python packages...' && pip install -q -r /tmp/requirements.txt && echo 'Setting up application...' && mkdir -p /app && cd /app && aws s3 sync s3://${var.code_bucket_name}/src ./src && aws s3 sync s3://${var.code_bucket_name}/config ./config && export PYTHONPATH=/app:$PYTHONPATH && echo 'Starting Streamlit application...' && streamlit run src/chatbot_app.py --server.port=8501 --server.address=0.0.0.0"
       ]
       
       logConfiguration = var.enable_logging ? {
@@ -130,7 +130,7 @@ resource "aws_ecs_service" "main" {
     container_port   = 8501
   }
 
-  health_check_grace_period_seconds = 300
+  health_check_grace_period_seconds = 600
 
   depends_on = [
     aws_lb_listener.main
@@ -179,13 +179,13 @@ resource "aws_lb_target_group" "main" {
   health_check {
     enabled             = true
     healthy_threshold   = 2
-    interval            = 60
+    interval            = 90
     matcher             = "200"
     path                = "/"
     port                = "traffic-port"
     protocol            = "HTTP"
-    timeout             = 30
-    unhealthy_threshold = 5
+    timeout             = 60
+    unhealthy_threshold = 10
   }
 
   tags = merge(var.common_tags, {

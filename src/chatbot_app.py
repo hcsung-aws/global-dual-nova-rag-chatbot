@@ -48,15 +48,67 @@ def get_aws_clients():
     AWSClientManager를 사용한 AWS 클라이언트 초기화
     기존 함수와의 호환성을 유지하면서 AWSClientManager의 이점을 활용
     """
-    manager = get_aws_client_manager()
-    return manager.initialize_clients(['s3', 'bedrock-runtime', 'secretsmanager'])
+    print("Running get_aws_clients().")
+    try:
+        manager = get_aws_client_manager()
+        clients = manager.initialize_clients(['s3', 'bedrock-runtime', 'secretsmanager'])
+        
+        # 중요한 클라이언트 검증 - 더 상세한 로깅
+        if 'bedrock-runtime' not in clients or clients.get('bedrock-runtime') is None:
+            print("❌ Bedrock Runtime 클라이언트 초기화 실패")
+            print(f"사용 가능한 클라이언트: {list(clients.keys())}")
+            
+            # 직접 생성 시도
+            try:
+                print("🔄 Bedrock Runtime 클라이언트 직접 생성 시도...")
+                import boto3
+                from botocore.config import Config
+                
+                config = Config(
+                    read_timeout=60,
+                    connect_timeout=10,
+                    retries={'max_attempts': 3, 'mode': 'adaptive'}
+                )
+                
+                bedrock_client = boto3.client(
+                    'bedrock-runtime',
+                    region_name='us-east-1',
+                    config=config
+                )
+                
+                # bedrock-runtime 클라이언트 헬스체크 (invoke_model 메서드 존재 여부 확인)
+                if not hasattr(bedrock_client, 'invoke_model'):
+                    raise AttributeError("bedrock-runtime 클라이언트에 invoke_model 메서드가 없습니다")
+                clients['bedrock-runtime'] = bedrock_client
+                print("✅ Bedrock Runtime 클라이언트 직접 생성 성공")
+                
+            except Exception as direct_error:
+                print(f"❌ 직접 생성도 실패: {direct_error}")
+                st.error(f"❌ Bedrock Runtime 클라이언트 초기화 실패: {direct_error}")
+                st.stop()
+        
+        print(f"✅ AWS 클라이언트 초기화 완료: {list(clients.keys())}")
+        return clients
+        
+    except Exception as e:
+        print(f"❌ AWS 클라이언트 초기화 실패: {e}")
+        st.error(f"❌ AWS 클라이언트 초기화 실패: {e}")
+        st.stop()
 
 # 전역 클라이언트 매니저 인스턴스
 aws_manager = get_aws_client_manager()
 clients = get_aws_clients()
 
 # StreamingHandler 인스턴스 생성
-streaming_handler = StreamingHandler(clients)
+try:
+    streaming_handler = StreamingHandler(clients)
+    print("✅ StreamingHandler 초기화 성공")
+except Exception as e:
+    st.error(f"❌ StreamingHandler 초기화 실패: {e}")
+    st.write("**디버깅 정보:**")
+    st.write(f"- 사용 가능한 클라이언트: {list(clients.keys())}")
+    st.write(f"- bedrock-runtime 클라이언트: {clients.get('bedrock-runtime', 'None')}")
+    st.stop()
 
 # TranslationService 인스턴스 생성
 translation_service = TranslationService(aws_manager)
@@ -275,50 +327,113 @@ with st.sidebar:
     st.header("📊 토큰 사용량")
     
     try:
-        # 최근 1시간 Nova Pro 토큰 사용량
+        # 최근 1시간 토큰 사용량 조회
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(hours=1)
         
-        cloudwatch_client = aws_manager.get_client('cloudwatch', region_name='us-east-1')
-        response = cloudwatch_client.get_metric_statistics(
-            Namespace='AWS/Bedrock',
-            MetricName='InputTokenCount',
-            Dimensions=[{'Name': 'ModelId', 'Value': 'amazon.nova-pro-v1:0'}],
-            StartTime=start_time,
-            EndTime=end_time,
-            Period=3600,
-            Statistics=['Sum']
-        )
+        # CloudWatch 클라이언트 초기화 (오류 처리 포함)
+        cloudwatch_client = None
+        try:
+            cloudwatch_client = aws_manager.get_client('cloudwatch', region_name='us-east-1')
+        except Exception as init_error:
+            st.error(f"CloudWatch 클라이언트 초기화 실패: {str(init_error)}")
+            st.caption("CloudWatch 메트릭 조회를 건너뜁니다.")
+            cloudwatch_client = None
         
-        if response['Datapoints']:
-            input_tokens = int(response['Datapoints'][0]['Sum'])
-            st.metric("Nova Pro 입력 토큰 (1시간)", f"{input_tokens:,}")
-        else:
-            st.info("토큰 사용량 데이터 없음")
+        # CloudWatch 클라이언트가 성공적으로 초기화된 경우에만 메트릭 조회
+        if cloudwatch_client is not None:
+            # 토큰 사용량 조회 함수
+            def get_token_metrics(model_id, metric_name, label):
+                try:
+                    response = cloudwatch_client.get_metric_statistics(
+                        Namespace='AWS/Bedrock',
+                        MetricName=metric_name,
+                        Dimensions=[{'Name': 'ModelId', 'Value': model_id}],
+                        StartTime=start_time,
+                        EndTime=end_time,
+                        Period=3600,
+                        Statistics=['Sum']
+                    )
+                    
+                    if response['Datapoints']:
+                        tokens = int(response['Datapoints'][0]['Sum'])
+                        st.metric(label, f"{tokens:,}")
+                        return tokens
+                    else:
+                        st.info(f"{label}: 데이터 없음")
+                        return 0
+                except Exception as e:
+                    st.warning(f"{label} 조회 실패: {str(e)[:50]}...")
+                    return 0
             
-        # 캐시 효율성 확인
-        cache_response = cloudwatch_client.get_metric_statistics(
-            Namespace='AWS/Bedrock',
-            MetricName='CacheReadInputTokenCount',
-            Dimensions=[{'Name': 'ModelId', 'Value': 'amazon.nova-pro-v1:0'}],
-            StartTime=start_time,
-            EndTime=end_time,
-            Period=3600,
-            Statistics=['Sum']
-        )
-        
-        if cache_response['Datapoints']:
-            cache_tokens = int(cache_response['Datapoints'][0]['Sum'])
-            if input_tokens > 0:
-                cache_efficiency = (cache_tokens / input_tokens) * 100
-                st.metric("캐시 효율", f"{cache_efficiency:.1f}%", f"{cache_tokens:,} 토큰 절약")
-            else:
-                st.metric("캐시 토큰", f"{cache_tokens:,}")
-        else:
-            st.info("캐시 데이터 없음")
+            # Nova Pro 메트릭
+            st.subheader("🧠 Nova Pro")
+            pro_input = get_token_metrics('amazon.nova-pro-v1:0', 'InputTokenCount', 'Pro 입력 토큰')
+            pro_output = get_token_metrics('amazon.nova-pro-v1:0', 'OutputTokenCount', 'Pro 출력 토큰')
+            
+            # Nova Micro 메트릭
+            st.subheader("⚡ Nova Micro")
+            micro_input = get_token_metrics('amazon.nova-micro-v1:0', 'InputTokenCount', 'Micro 입력 토큰')
+            micro_output = get_token_metrics('amazon.nova-micro-v1:0', 'OutputTokenCount', 'Micro 출력 토큰')
+                
+            # 캐시 효율성 확인 (Nova Pro)
+            st.subheader("🚀 캐시 효율성")
+            try:
+                cache_read_response = cloudwatch_client.get_metric_statistics(
+                    Namespace='AWS/Bedrock',
+                    MetricName='CacheReadInputTokenCount',
+                    Dimensions=[{'Name': 'ModelId', 'Value': 'amazon.nova-pro-v1:0'}],
+                    StartTime=start_time,
+                    EndTime=end_time,
+                    Period=3600,
+                    Statistics=['Sum']
+                )
+                
+                if cache_read_response['Datapoints']:
+                    cache_read_tokens = int(cache_read_response['Datapoints'][0]['Sum'])
+                    if pro_input > 0:
+                        cache_efficiency = (cache_read_tokens / pro_input) * 100
+                        st.metric("Pro 캐시 효율", f"{cache_efficiency:.1f}%", f"{cache_read_tokens:,} 토큰 절약")
+                    else:
+                        st.metric("Pro 캐시 읽기", f"{cache_read_tokens:,}")
+                else:
+                    st.info("Pro 캐시 데이터 없음")
+            except Exception as e:
+                st.warning(f"Pro 캐시 조회 실패: {str(e)[:50]}...")
+                
+            # 총 사용량 표시
+            total_input = pro_input + micro_input
+            total_output = pro_output + micro_output
+            if total_input > 0 or total_output > 0:
+                st.subheader("📊 총 사용량 (1시간)")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("총 입력 토큰", f"{total_input:,}")
+                with col2:
+                    st.metric("총 출력 토큰", f"{total_output:,}")
             
     except Exception as e:
-        st.error(f"토큰 모니터링 오류: {str(e)[:50]}...")
+        st.error(f"토큰 모니터링 전체 오류: {str(e)[:100]}...")
+        st.caption("CloudWatch 메트릭 조회 권한을 확인해주세요.")
+        
+        # 디버깅 정보 표시
+        with st.expander("🔍 디버깅 정보"):
+            st.code(f"오류 상세: {str(e)}")
+            st.code(f"AWS 리전: us-east-1")
+            
+            # CloudWatch 클라이언트가 정의된 경우에만 표시
+            if 'cloudwatch_client' in locals() and cloudwatch_client is not None:
+                st.code(f"CloudWatch 클라이언트: {type(cloudwatch_client)}")
+                
+                # 사용 가능한 메트릭 확인 시도
+                try:
+                    metrics = cloudwatch_client.list_metrics(Namespace='AWS/Bedrock')
+                    st.code(f"사용 가능한 메트릭 수: {len(metrics.get('Metrics', []))}")
+                except Exception as list_error:
+                    st.code(f"메트릭 목록 조회 실패: {str(list_error)}")
+            else:
+                st.code("CloudWatch 클라이언트: 초기화되지 않음")
+                st.code(f"메트릭 목록 조회 실패: {str(list_error)}")
 
     # 시스템 상태
     st.header("📊 시스템 상태")
