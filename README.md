@@ -2,7 +2,10 @@
 
 🌍 **Amazon Bedrock Nova 모델을 활용한 엔터프라이즈급 다국어 고객 서비스 챗봇**으로, 이중 언어 지원과 RAG(Retrieval-Augmented Generation) 기능을 제공합니다.
 
-> 📖 **English Version**: [README_EN.md](README_EN.md)
+> 📖 **English Version**: [README_EN.md](README_EN.md)  
+> 📋 **릴리즈 노트**: [RELEASE_NOTES.md](RELEASE_NOTES.md) | [Release Notes (EN)](RELEASE_NOTES_EN.md)
+
+**현재 버전**: v0.1.0 (첫 공개 버전)
 
 ## 🚀 주요 기능
 

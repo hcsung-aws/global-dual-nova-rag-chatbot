@@ -2,7 +2,10 @@
 
 🌍 **Enterprise-grade multilingual customer service chatbot** powered by Amazon Bedrock Nova models with dual-language support and RAG (Retrieval-Augmented Generation) capabilities.
 
-> 📖 **한국어 버전**: [README.md](README.md)
+> 📖 **한국어 버전**: [README.md](README.md)  
+> 📋 **릴리즈 노트**: [RELEASE_NOTES.md](RELEASE_NOTES.md) | [Release Notes (EN)](RELEASE_NOTES_EN.md)
+
+**Current Version**: v0.1.0 (Initial Public Release)
 
 ## 🚀 Features
 

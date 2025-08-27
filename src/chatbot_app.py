@@ -32,11 +32,14 @@ from src.services.knowledge_base_service import KnowledgeBaseService
 # BedrockService import 추가
 from src.services.bedrock_service import BedrockService
 
-st.set_page_config(page_title='글로벌 CS 챗봇 🌍', page_icon='🌍', layout='wide')
+# 버전 정보
+VERSION = "0.1.0"
 
-st.markdown('''
+st.set_page_config(page_title=f'글로벌 CS 챗봇 v{VERSION} 🌍', page_icon='🌍', layout='wide')
+
+st.markdown(f'''
 <div style="text-align: center; padding: 1rem 0; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin-bottom: 2rem;">
-    <h1>🌍 글로벌 CS 챗봇</h1>
+    <h1>🌍 글로벌 CS 챗봇 <span style="font-size: 0.6em; opacity: 0.8;">v{VERSION}</span></h1>
     <p>다국어 지원 고객 서비스 (Powered by Nova Micro + Nova Pro + Translation)</p>
 </div>
 ''', unsafe_allow_html=True)
