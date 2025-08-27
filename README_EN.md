@@ -82,28 +82,75 @@ After deployment, Terraform will output the Application Load Balancer URL.
 
 ```
 global-dual-nova-rag-chatbot/
-├── src/
-│   └── chatbot_app.py          # Main Streamlit application
-├── terraform/
+├── src/                        # Application source code
+│   ├── chatbot_app.py          # Main Streamlit application
+│   ├── config/                 # Configuration modules
+│   │   ├── __init__.py
+│   │   └── models.py           # Data model definitions
+│   ├── core/                   # Core business logic
+│   │   ├── __init__.py
+│   │   ├── aws_clients.py      # AWS client management
+│   │   ├── dual_response.py    # Dual model response handling
+│   │   ├── prompt_generator.py # Prompt generation
+│   │   └── streaming_handler.py # Streaming processing
+│   ├── services/               # External service integrations
+│   │   ├── __init__.py
+│   │   ├── bedrock_service.py  # Bedrock service
+│   │   ├── knowledge_base_service.py # Knowledge Base service
+│   │   └── translation_service.py # Translation service
+│   └── utils/                  # Utility functions
+│       ├── __init__.py
+│       ├── config_manager.py   # Configuration management
+│       ├── error_handler.py    # Error handling
+│       ├── error_logging_utils.py # Error logging
+│       ├── glossary_manager.py # Glossary management
+│       ├── glossary_wrapper.py # Glossary wrapper
+│       └── logger.py           # Logging utilities
+├── terraform/                  # Infrastructure as Code (IaC)
 │   ├── main.tf                 # Main infrastructure configuration
 │   ├── variables.tf            # Input variables
 │   ├── outputs.tf              # Output values
-│   ├── ecs.tf                  # ECS service configuration
-│   ├── alb.tf                  # Application Load Balancer
-│   ├── secrets.tf              # Secrets Manager configuration
-│   └── s3.tf                   # S3 bucket for code storage
-├── config/
+│   ├── modules/                # Terraform modules
+│   │   ├── compute/            # ECS/Fargate configuration
+│   │   ├── networking/         # VPC/subnet configuration
+│   │   ├── security/           # Security groups/IAM configuration
+│   │   └── storage/            # S3/Secrets Manager configuration
+│   └── environments/           # Environment-specific configurations
+│       ├── dev/                # Development environment
+│       └── prod/               # Production environment
+├── config/                     # Configuration files
 │   ├── requirements.txt        # Python dependencies
-│   └── game_glossary.json      # Gaming character glossary
-├── docs/
+│   ├── game_glossary.json      # Gaming character glossary
+│   └── default.json            # Default configuration
+├── tests/                      # Test code
+│   ├── test_aws_clients.py     # AWS client tests
+│   ├── test_bedrock_service.py # Bedrock service tests
+│   ├── test_config_manager.py  # Configuration management tests
+│   ├── test_dual_response.py   # Dual response tests
+│   ├── test_glossary_manager.py # Glossary management tests
+│   ├── test_integration_aws_clients.py # AWS integration tests
+│   ├── test_knowledge_base_service.py # Knowledge Base tests
+│   ├── test_migration_verification.py # Migration verification tests
+│   ├── test_performance_benchmarks.py # Performance benchmark tests
+│   ├── test_streaming_handler.py # Streaming handler tests
+│   ├── test_system_integration.py # System integration tests
+│   └── test_translation_service.py # Translation service tests
+├── examples/                   # Usage examples
+│   └── error_logging_usage_examples.py # Error logging usage examples
+├── docs/                       # Documentation
 │   ├── ARCHITECTURE.md         # Detailed architecture documentation
+│   ├── COST_ANALYSIS.md        # Cost analysis report
 │   ├── DEPLOYMENT.md           # Deployment guide
-│   └── API.md                  # API documentation
-├── assets/
+│   ├── MIGRATION_REPORT.md     # Migration report
+│   └── SECURITY_CONFIGURATION.md # Security configuration guide
+├── assets/                     # Static assets
 │   └── architecture-diagram.txt # Architecture diagram
-├── scripts/
+├── scripts/                    # Scripts
 │   ├── deploy.sh               # Deployment script
-│   └── cleanup.sh              # Cleanup script
+│   ├── cleanup.sh              # Cleanup script
+│   └── run_migration_verification.py # Migration verification script
+├── worklog/                    # Work logs
+│   └── README.md               # Work log documentation
 └── README.md                   # Korean version (main)
 ```
 

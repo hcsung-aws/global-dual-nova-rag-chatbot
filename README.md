@@ -82,29 +82,75 @@ terraform apply
 
 ```
 global-dual-nova-rag-chatbot/
-├── src/
-│   └── chatbot_app.py          # 메인 Streamlit 애플리케이션
-├── terraform/
+├── src/                        # 애플리케이션 소스 코드
+│   ├── chatbot_app.py          # 메인 Streamlit 애플리케이션
+│   ├── config/                 # 설정 관련 모듈
+│   │   ├── __init__.py
+│   │   └── models.py           # 데이터 모델 정의
+│   ├── core/                   # 핵심 비즈니스 로직
+│   │   ├── __init__.py
+│   │   ├── aws_clients.py      # AWS 클라이언트 관리
+│   │   ├── dual_response.py    # 듀얼 모델 응답 처리
+│   │   ├── prompt_generator.py # 프롬프트 생성
+│   │   └── streaming_handler.py # 스트리밍 처리
+│   ├── services/               # 외부 서비스 연동
+│   │   ├── __init__.py
+│   │   ├── bedrock_service.py  # Bedrock 서비스
+│   │   ├── knowledge_base_service.py # Knowledge Base 서비스
+│   │   └── translation_service.py # 번역 서비스
+│   └── utils/                  # 유틸리티 함수들
+│       ├── __init__.py
+│       ├── config_manager.py   # 설정 관리
+│       ├── error_handler.py    # 에러 처리
+│       ├── error_logging_utils.py # 에러 로깅
+│       ├── glossary_manager.py # 용어집 관리
+│       ├── glossary_wrapper.py # 용어집 래퍼
+│       └── logger.py           # 로깅 유틸리티
+├── terraform/                  # 인프라 코드 (IaC)
 │   ├── main.tf                 # 메인 인프라 설정
 │   ├── variables.tf            # 입력 변수
 │   ├── outputs.tf              # 출력 값
-│   ├── ecs.tf                  # ECS 서비스 설정
-│   ├── alb.tf                  # Application Load Balancer
-│   ├── secrets.tf              # Secrets Manager 설정
-│   └── s3.tf                   # 코드 저장용 S3 버킷
-├── config/
+│   ├── modules/                # Terraform 모듈들
+│   │   ├── compute/            # ECS/Fargate 설정
+│   │   ├── networking/         # VPC/서브넷 설정
+│   │   ├── security/           # 보안 그룹/IAM 설정
+│   │   └── storage/            # S3/Secrets Manager 설정
+│   └── environments/           # 환경별 설정
+│       ├── dev/                # 개발 환경
+│       └── prod/               # 프로덕션 환경
+├── config/                     # 설정 파일들
 │   ├── requirements.txt        # Python 의존성
-│   └── game_glossary.json      # 게임 캐릭터 용어집
-├── docs/
+│   ├── game_glossary.json      # 게임 캐릭터 용어집
+│   └── default.json            # 기본 설정
+├── tests/                      # 테스트 코드
+│   ├── test_aws_clients.py     # AWS 클라이언트 테스트
+│   ├── test_bedrock_service.py # Bedrock 서비스 테스트
+│   ├── test_config_manager.py  # 설정 관리 테스트
+│   ├── test_dual_response.py   # 듀얼 응답 테스트
+│   ├── test_glossary_manager.py # 용어집 관리 테스트
+│   ├── test_integration_aws_clients.py # AWS 통합 테스트
+│   ├── test_knowledge_base_service.py # Knowledge Base 테스트
+│   ├── test_migration_verification.py # 마이그레이션 검증 테스트
+│   ├── test_performance_benchmarks.py # 성능 벤치마크 테스트
+│   ├── test_streaming_handler.py # 스트리밍 핸들러 테스트
+│   ├── test_system_integration.py # 시스템 통합 테스트
+│   └── test_translation_service.py # 번역 서비스 테스트
+├── examples/                   # 사용 예제
+│   └── error_logging_usage_examples.py # 에러 로깅 사용 예제
+├── docs/                       # 문서
 │   ├── ARCHITECTURE.md         # 상세 아키텍처 문서
+│   ├── COST_ANALYSIS.md        # 비용 분석 보고서
 │   ├── DEPLOYMENT.md           # 배포 가이드
-│   ├── API.md                  # API 문서
-│   └── COST_ANALYSIS.md        # 비용 분석 보고서
-├── assets/
+│   ├── MIGRATION_REPORT.md     # 마이그레이션 보고서
+│   └── SECURITY_CONFIGURATION.md # 보안 설정 가이드
+├── assets/                     # 정적 자산
 │   └── architecture-diagram.txt # 아키텍처 다이어그램
-├── scripts/
+├── scripts/                    # 스크립트
 │   ├── deploy.sh               # 배포 스크립트
-│   └── cleanup.sh              # 정리 스크립트
+│   ├── cleanup.sh              # 정리 스크립트
+│   └── run_migration_verification.py # 마이그레이션 검증 스크립트
+├── worklog/                    # 작업 로그
+│   └── README.md               # 작업 로그 설명
 └── README.md                   # 이 파일
 ```
 
