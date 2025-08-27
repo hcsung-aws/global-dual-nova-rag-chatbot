@@ -1,5 +1,17 @@
 # 컴퓨팅 모듈 - ECS, ALB
 
+# CloudWatch Log Group
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs/${var.resource_prefix}"
+  retention_in_days = var.log_retention_days
+  
+  tags = merge(var.common_tags, {
+    Name    = "${var.resource_prefix}-log-group"
+    Service = "CloudWatch"
+    Tier    = "Logging"
+  })
+}
+
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = "${var.resource_prefix}-cluster"
@@ -73,13 +85,13 @@ resource "aws_ecs_task_definition" "main" {
       command = [
         "bash",
         "-c",
-        "apt-get update && apt-get install -y curl unzip && curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip awscliv2.zip && ./aws/install && pip install streamlit boto3 requests && mkdir -p /app && cd /app && aws s3 cp s3://${var.code_bucket_name}/chatbot_app.py app.py && streamlit run app.py --server.port=8501 --server.address=0.0.0.0"
+        "apt-get update && apt-get install -y curl unzip && curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && unzip awscliv2.zip && ./aws/install && aws s3 cp s3://${var.code_bucket_name}/requirements.txt /tmp/requirements.txt && pip install -r /tmp/requirements.txt && mkdir -p /app && cd /app && aws s3 sync s3://${var.code_bucket_name}/src ./src && aws s3 sync s3://${var.code_bucket_name}/config ./config && export PYTHONPATH=/app:$PYTHONPATH && streamlit run src/chatbot_app.py --server.port=8501 --server.address=0.0.0.0"
       ]
       
       logConfiguration = var.enable_logging ? {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = var.cloudwatch_log_group_name
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = var.resource_prefix
         }
@@ -118,17 +130,7 @@ resource "aws_ecs_service" "main" {
     container_port   = 8501
   }
 
-  deployment_configuration {
-    maximum_percent         = 200
-    minimum_healthy_percent = 50
-    
-    deployment_circuit_breaker {
-      enable   = true
-      rollback = true
-    }
-  }
-
-  health_check_grace_period_seconds = 60
+  health_check_grace_period_seconds = 300
 
   depends_on = [
     aws_lb_listener.main
@@ -177,13 +179,13 @@ resource "aws_lb_target_group" "main" {
   health_check {
     enabled             = true
     healthy_threshold   = 2
-    interval            = 30
+    interval            = 60
     matcher             = "200"
     path                = "/"
     port                = "traffic-port"
     protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
+    timeout             = 30
+    unhealthy_threshold = 5
   }
 
   tags = merge(var.common_tags, {
@@ -305,19 +307,4 @@ resource "aws_appautoscaling_policy" "ecs_memory" {
     }
     target_value = var.auto_scaling_target_memory
   }
-}
-
-# CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "ecs" {
-  count = var.enable_logging ? 1 : 0
-
-  name              = "/ecs/${var.resource_prefix}"
-  retention_in_days = var.log_retention_days
-
-  tags = merge(var.common_tags, {
-    Name = "${var.resource_prefix}-log-group"
-    Type = "Logging"
-    Tier = "Monitoring"
-    Service = "CloudWatch"
-  })
 }

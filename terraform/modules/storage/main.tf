@@ -1,5 +1,15 @@
 # 스토리지 모듈 - S3, Secrets Manager
 
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+      configuration_aliases = [aws.no_default_tags]
+    }
+  }
+}
+
 # Random ID for unique bucket names
 resource "random_id" "bucket_suffix" {
   byte_length = 4
@@ -81,6 +91,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
   rule {
     id     = "delete_old_logs"
     status = "Enabled"
+    
+    filter {
+      prefix = ""
+    }
 
     expiration {
       days = 30
@@ -134,36 +148,73 @@ resource "aws_s3_bucket_policy" "alb_logs" {
   })
 }
 
-# Upload the chatbot application code
+# Upload the chatbot application code to src/ directory
 resource "aws_s3_object" "chatbot_app" {
+  provider = aws.no_default_tags
+  
   bucket = aws_s3_bucket.code.bucket
-  key    = "chatbot_app.py"
+  key    = "src/chatbot_app.py"
   source = var.chatbot_app_source_path
   etag   = filemd5(var.chatbot_app_source_path)
-
-  tags = merge(var.common_tags, {
-    Name = "${var.resource_prefix}-chatbot-application-code"
-    Type = "Storage"
-    Tier = "Application"
-    Service = "S3"
-    ContentType = "ApplicationCode"
-  })
+  
+  tags = {
+    Name        = "chatbot_app.py"
+    Environment = var.environment
+    Project     = var.resource_prefix
+  }
 }
 
 # Upload requirements.txt
 resource "aws_s3_object" "requirements" {
+  provider = aws.no_default_tags
+  
   bucket = aws_s3_bucket.code.bucket
   key    = "requirements.txt"
   source = var.requirements_source_path
   etag   = filemd5(var.requirements_source_path)
+  
+  tags = {
+    Name        = "requirements.txt"
+    Environment = var.environment
+    Project     = var.resource_prefix
+  }
+}
 
-  tags = merge(var.common_tags, {
-    Name = "${var.resource_prefix}-python-requirements"
-    Type = "Storage"
-    Tier = "Application"
-    Service = "S3"
-    ContentType = "Dependencies"
-  })
+# Upload game glossary
+resource "aws_s3_object" "game_glossary" {
+  provider = aws.no_default_tags
+  
+  bucket = aws_s3_bucket.code.bucket
+  key    = "config/game_glossary.json"
+  source = "./../config/game_glossary.json"
+  etag   = filemd5("./../config/game_glossary.json")
+  
+  tags = {
+    Name        = "game_glossary.json"
+    Environment = var.environment
+    Project     = var.resource_prefix
+  }
+}
+
+# Upload all src files
+locals {
+  src_files = fileset("./../src", "**/*.py")
+}
+
+resource "aws_s3_object" "src_files" {
+  provider = aws.no_default_tags
+  for_each = local.src_files
+  
+  bucket = aws_s3_bucket.code.bucket
+  key    = "src/${each.value}"
+  source = "./../src/${each.value}"
+  etag   = filemd5("./../src/${each.value}")
+  
+  tags = {
+    Name        = each.value
+    Environment = var.environment
+    Project     = var.resource_prefix
+  }
 }
 
 # Secrets Manager - Application Configuration

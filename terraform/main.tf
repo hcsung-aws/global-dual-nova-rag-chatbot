@@ -1,9 +1,16 @@
+# 모듈화된 Terraform 메인 설정 파일
+# 기존 main.tf를 대체하는 새로운 구조
+
 terraform {
   required_version = ">= 1.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.1"
     }
   }
 }
@@ -15,6 +22,20 @@ provider "aws" {
     tags = local.common_tags
   }
 }
+
+# Separate provider for S3 objects to avoid tag limit issues
+provider "aws" {
+  alias  = "no_default_tags"
+  region = var.aws_region
+  # No default_tags block to avoid S3 object tag limit
+}
+
+# 데이터 소스
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+data "aws_caller_identity" "current" {}
 
 # 표준화된 명명 규칙과 태그 시스템
 locals {
@@ -31,237 +52,81 @@ locals {
     CreatedDate  = formatdate("YYYY-MM-DD", timestamp())
     Application  = "global-dual-nova-rag-chatbot"
   })
+}
+
+# 스토리지 모듈
+module "storage" {
+  source = "./modules/storage"
   
-  # 서비스별 명명 규칙
-  naming = {
-    vpc                = "${local.resource_prefix}-vpc"
-    internet_gateway   = "${local.resource_prefix}-igw"
-    public_subnet      = "${local.resource_prefix}-public-subnet"
-    private_subnet     = "${local.resource_prefix}-private-subnet"
-    nat_gateway        = "${local.resource_prefix}-nat-gateway"
-    nat_eip           = "${local.resource_prefix}-nat-eip"
-    public_route_table = "${local.resource_prefix}-public-rt"
-    private_route_table = "${local.resource_prefix}-private-rt"
-    alb_security_group = "${local.resource_prefix}-alb-sg"
-    ecs_security_group = "${local.resource_prefix}-ecs-sg"
-  }
-}
-
-# Data sources
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-data "aws_caller_identity" "current" {}
-
-# VPC
-resource "aws_vpc" "main" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-
-  tags = merge(local.common_tags, {
-    Name = local.naming.vpc
-    Type = "Network"
-    Tier = "Infrastructure"
-  })
-}
-
-# Internet Gateway
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-
-  tags = merge(local.common_tags, {
-    Name = local.naming.internet_gateway
-    Type = "Network"
-    Tier = "Infrastructure"
-  })
-}
-
-# Public Subnets
-resource "aws_subnet" "public" {
-  count = length(var.public_subnet_cidrs)
-
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnet_cidrs[count.index]
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
-  map_public_ip_on_launch = true
-
-  tags = merge(local.common_tags, {
-    Name = "${local.naming.public_subnet}-${count.index + 1}"
-    Type = "Network"
-    Tier = "Public"
-    SubnetType = "Public"
-    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
-  })
-}
-
-# Private Subnets
-resource "aws_subnet" "private" {
-  count = length(var.private_subnet_cidrs)
-
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-
-  tags = merge(local.common_tags, {
-    Name = "${local.naming.private_subnet}-${count.index + 1}"
-    Type = "Network"
-    Tier = "Private"
-    SubnetType = "Private"
-    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
-  })
-}
-
-# NAT Gateway
-resource "aws_eip" "nat" {
-  count = length(aws_subnet.public)
-
-  domain = "vpc"
-  depends_on = [aws_internet_gateway.main]
-
-  tags = merge(local.common_tags, {
-    Name = "${local.naming.nat_eip}-${count.index + 1}"
-    Type = "Network"
-    Tier = "Infrastructure"
-    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
-  })
-}
-
-resource "aws_nat_gateway" "main" {
-  count = length(aws_subnet.public)
-
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
-
-  tags = merge(local.common_tags, {
-    Name = "${local.naming.nat_gateway}-${count.index + 1}"
-    Type = "Network"
-    Tier = "Infrastructure"
-    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
-  })
-
-  depends_on = [aws_internet_gateway.main]
-}
-
-# Route Tables
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
+  providers = {
+    aws                = aws
+    aws.no_default_tags = aws.no_default_tags
   }
 
-  tags = merge(local.common_tags, {
-    Name = local.naming.public_route_table
-    Type = "Network"
-    Tier = "Infrastructure"
-    RouteType = "Public"
-  })
+  resource_prefix           = local.resource_prefix
+  common_tags              = local.common_tags
+  aws_region               = var.aws_region
+  environment              = var.environment
+  account_id               = data.aws_caller_identity.current.account_id
+  knowledge_base_id        = var.knowledge_base_id
+  data_source_ids          = var.data_source_ids
+  notion_token             = var.notion_token
+  chatbot_app_source_path  = "${path.module}/../src/chatbot_app.py"
+  requirements_source_path = "${path.module}/../config/requirements.txt"
 }
 
-resource "aws_route_table" "private" {
-  count = length(aws_nat_gateway.main)
+# 네트워킹 모듈
+module "networking" {
+  source = "./modules/networking"
 
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main[count.index].id
-  }
-
-  tags = merge(local.common_tags, {
-    Name = "${local.naming.private_route_table}-${count.index + 1}"
-    Type = "Network"
-    Tier = "Infrastructure"
-    RouteType = "Private"
-    AvailabilityZone = data.aws_availability_zones.available.names[count.index]
-  })
+  resource_prefix        = local.resource_prefix
+  common_tags           = local.common_tags
+  vpc_cidr              = var.vpc_cidr
+  public_subnet_cidrs   = var.public_subnet_cidrs
+  private_subnet_cidrs  = var.private_subnet_cidrs
+  availability_zones    = data.aws_availability_zones.available.names
 }
 
-# Route Table Associations
-resource "aws_route_table_association" "public" {
-  count = length(aws_subnet.public)
+# 보안 모듈
+module "security" {
+  source = "./modules/security"
 
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
+  resource_prefix = local.resource_prefix
+  common_tags     = local.common_tags
+  vpc_id          = module.networking.vpc_id
+  secrets_arns    = module.storage.secrets_arns
+  s3_bucket_arns  = module.storage.s3_bucket_arns
 }
 
-resource "aws_route_table_association" "private" {
-  count = length(aws_subnet.private)
+# 컴퓨팅 모듈
+module "compute" {
+  source = "./modules/compute"
 
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
-}
-
-# Security Groups
-resource "aws_security_group" "alb" {
-  name_prefix = "${local.resource_prefix}-alb-"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(local.common_tags, {
-    Name = local.naming.alb_security_group
-    Type = "Security"
-    Tier = "LoadBalancer"
-    Service = "ALB"
-  })
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_security_group" "ecs" {
-  name_prefix = "${local.resource_prefix}-ecs-"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description     = "HTTP from ALB"
-    from_port       = 8501
-    to_port         = 8501
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(local.common_tags, {
-    Name = local.naming.ecs_security_group
-    Type = "Security"
-    Tier = "Application"
-    Service = "ECS"
-  })
-
-  lifecycle {
-    create_before_destroy = true
-  }
+  resource_prefix              = local.resource_prefix
+  common_tags                 = local.common_tags
+  aws_region                  = var.aws_region
+  vpc_id                      = module.networking.vpc_id
+  public_subnet_ids           = module.networking.public_subnet_ids
+  private_subnet_ids          = module.networking.private_subnet_ids
+  alb_security_group_id       = module.security.alb_security_group_id
+  ecs_security_group_id       = module.security.ecs_security_group_id
+  ecs_task_execution_role_arn = module.security.ecs_task_execution_role_arn
+  ecs_task_role_arn          = module.security.ecs_task_role_arn
+  ecs_cpu                    = var.ecs_cpu
+  ecs_memory                 = var.ecs_memory
+  ecs_desired_count          = var.ecs_desired_count
+  ecs_min_capacity           = var.ecs_min_capacity
+  ecs_max_capacity           = var.ecs_max_capacity
+  container_image            = var.container_image
+  code_bucket_name           = module.storage.code_bucket_name
+  alb_logs_bucket_name       = module.storage.alb_logs_bucket_name
+  notion_token_secret_arn    = module.storage.notion_token_secret_arn
+  app_config_secret_arn      = module.storage.app_config_secret_arn
+  enable_auto_scaling        = var.enable_auto_scaling
+  auto_scaling_target_cpu    = var.auto_scaling_target_cpu
+  auto_scaling_target_memory = var.auto_scaling_target_memory
+  enable_logging             = var.enable_logging
+  log_retention_days         = var.log_retention_days
+  enable_https               = var.enable_https
+  ssl_certificate_arn        = var.ssl_certificate_arn
 }

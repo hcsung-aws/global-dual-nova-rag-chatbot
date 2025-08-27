@@ -42,5 +42,5 @@ output "target_group_arn" {
 
 output "cloudwatch_log_group_name" {
   description = "Name of the CloudWatch log group"
-  value       = var.enable_logging ? aws_cloudwatch_log_group.ecs[0].name : null
+  value       = var.enable_logging ? aws_cloudwatch_log_group.ecs.name : null
 }

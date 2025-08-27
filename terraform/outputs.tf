@@ -1,134 +1,170 @@
-# Load Balancer Outputs
-output "load_balancer_dns_name" {
-  description = "DNS name of the load balancer"
-  value       = aws_lb.main.dns_name
-}
-
-output "load_balancer_zone_id" {
-  description = "Hosted zone ID of the load balancer"
-  value       = aws_lb.main.zone_id
-}
-
-output "load_balancer_arn" {
-  description = "ARN of the load balancer"
-  value       = aws_lb.main.arn
-}
+# 모듈화된 구조의 출력 파일
 
 # Application URLs
 output "application_url" {
   description = "URL to access the application"
-  value       = var.enable_https ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
+  value       = var.enable_https ? "https://${module.compute.load_balancer_dns_name}" : "http://${module.compute.load_balancer_dns_name}"
 }
 
 output "application_urls" {
   description = "All available URLs to access the application"
   value = {
-    http  = "http://${aws_lb.main.dns_name}"
-    https = var.enable_https ? "https://${aws_lb.main.dns_name}" : "HTTPS not enabled"
+    http  = "http://${module.compute.load_balancer_dns_name}"
+    https = var.enable_https ? "https://${module.compute.load_balancer_dns_name}" : "HTTPS not enabled"
   }
 }
 
-# Security Information
-output "security_configuration" {
-  description = "Security configuration summary"
-  value = {
-    restricted_access = var.restrict_public_access
-    allowed_ips = var.restrict_public_access ? var.admin_ip_addresses : ["Public access enabled"]
-    vpc_access_enabled = var.enable_vpc_access
-    https_enabled = var.enable_https
-  }
+# Load Balancer Information
+output "load_balancer_dns_name" {
+  description = "DNS name of the load balancer"
+  value       = module.compute.load_balancer_dns_name
+}
+
+output "load_balancer_zone_id" {
+  description = "Hosted zone ID of the load balancer"
+  value       = module.compute.load_balancer_zone_id
+}
+
+output "load_balancer_arn" {
+  description = "ARN of the load balancer"
+  value       = module.compute.load_balancer_arn
 }
 
 # ECS Information
 output "ecs_cluster_name" {
   description = "Name of the ECS cluster"
-  value       = aws_ecs_cluster.main.name
+  value       = module.compute.ecs_cluster_name
 }
 
 output "ecs_service_name" {
   description = "Name of the ECS service"
-  value       = aws_ecs_service.main.name
+  value       = module.compute.ecs_service_name
 }
 
 output "ecs_task_definition_arn" {
   description = "ARN of the ECS task definition"
-  value       = aws_ecs_task_definition.main.arn
+  value       = module.compute.ecs_task_definition_arn
 }
 
 # VPC Information
 output "vpc_id" {
   description = "ID of the VPC"
-  value       = aws_vpc.main.id
+  value       = module.networking.vpc_id
 }
 
 output "vpc_cidr_block" {
   description = "CIDR block of the VPC"
-  value       = aws_vpc.main.cidr_block
+  value       = module.networking.vpc_cidr_block
 }
 
 output "public_subnet_ids" {
   description = "IDs of the public subnets"
-  value       = aws_subnet.public[*].id
+  value       = module.networking.public_subnet_ids
 }
 
 output "private_subnet_ids" {
   description = "IDs of the private subnets"
-  value       = aws_subnet.private[*].id
+  value       = module.networking.private_subnet_ids
 }
 
-# Security Group Information
+# Security Information
 output "alb_security_group_id" {
   description = "ID of the ALB security group"
-  value       = aws_security_group.alb.id
+  value       = module.security.alb_security_group_id
 }
 
 output "ecs_security_group_id" {
   description = "ID of the ECS security group"
-  value       = aws_security_group.ecs.id
+  value       = module.security.ecs_security_group_id
 }
 
-# S3 Bucket Information
-output "alb_logs_bucket_name" {
-  description = "Name of the S3 bucket for ALB logs"
-  value       = aws_s3_bucket.alb_logs.bucket
-}
-
+# Storage Information
 output "code_bucket_name" {
   description = "Name of the S3 bucket for application code"
-  value       = aws_s3_bucket.code.bucket
+  value       = module.storage.code_bucket_name
+}
+
+output "alb_logs_bucket_name" {
+  description = "Name of the S3 bucket for ALB logs"
+  value       = module.storage.alb_logs_bucket_name
+}
+
+# Secrets Information
+output "app_config_secret_arn" {
+  description = "ARN of the application configuration secret"
+  value       = module.storage.app_config_secret_arn
+}
+
+output "notion_token_secret_arn" {
+  description = "ARN of the Notion token secret"
+  value       = module.storage.notion_token_secret_arn
 }
 
 # CloudWatch Information
 output "cloudwatch_log_group_name" {
   description = "Name of the CloudWatch log group"
-  value       = var.enable_logging ? aws_cloudwatch_log_group.ecs[0].name : "Logging not enabled"
-}
-
-# Secrets Manager Information
-output "app_config_secret_arn" {
-  description = "ARN of the application configuration secret"
-  value       = aws_secretsmanager_secret.app_config.arn
-}
-
-output "notion_token_secret_arn" {
-  description = "ARN of the Notion token secret"
-  value       = aws_secretsmanager_secret.notion_token.arn
+  value       = module.compute.cloudwatch_log_group_name
 }
 
 # Deployment Information
 output "deployment_info" {
   description = "Deployment information and next steps"
   value = {
-    region = var.aws_region
     environment = var.environment
+    region = var.aws_region
     project_name = var.project_name
-    access_url = var.enable_https ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
-    security_note = var.restrict_public_access ? "Access restricted to specified IPs" : "⚠️  PUBLIC ACCESS ENABLED - Consider restricting access for production"
+    resource_prefix = local.resource_prefix
+    access_url = var.enable_https ? "https://${module.compute.load_balancer_dns_name}" : "http://${module.compute.load_balancer_dns_name}"
+    
+    architecture = {
+      modular_design = "enabled"
+      modules_used = ["networking", "security", "compute", "storage"]
+      environment_specific = "supported"
+    }
+    
+    standardization = {
+      naming_convention = "${var.project_name}-${var.environment}-*"
+      tagging_strategy = "comprehensive"
+      resource_organization = "modular"
+    }
+    
     next_steps = [
       "1. Access the application using the URL above",
       "2. Configure your Knowledge Base ID in the application settings",
       "3. Test the chatbot functionality",
-      var.restrict_public_access ? "4. Verify access is properly restricted" : "4. ⚠️  IMPORTANT: Restrict access for production use"
+      "4. Monitor resources using standardized tags",
+      "5. Scale to other environments using the modular structure"
     ]
+  }
+}
+
+# Module Information
+output "module_information" {
+  description = "Information about the modular architecture"
+  value = {
+    networking_module = {
+      vpc_id = module.networking.vpc_id
+      public_subnets = length(module.networking.public_subnet_ids)
+      private_subnets = length(module.networking.private_subnet_ids)
+      nat_gateways = length(module.networking.nat_gateway_ids)
+    }
+    
+    security_module = {
+      security_groups = 2
+      iam_roles = 2
+      secrets_managed = length(module.storage.secrets_arns)
+    }
+    
+    compute_module = {
+      ecs_cluster = module.compute.ecs_cluster_name
+      load_balancer = module.compute.load_balancer_dns_name
+      auto_scaling = var.enable_auto_scaling
+    }
+    
+    storage_module = {
+      s3_buckets = 2
+      secrets_manager = 2
+      encryption = "enabled"
+    }
   }
 }

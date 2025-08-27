@@ -125,12 +125,6 @@ variable "log_retention_days" {
   type        = number
 }
 
-variable "cloudwatch_log_group_name" {
-  description = "CloudWatch log group name"
-  type        = string
-  default     = ""
-}
-
 variable "enable_https" {
   description = "Enable HTTPS on ALB"
   type        = bool
