@@ -53,8 +53,12 @@ class TestStreamingHandler:
     
     def test_init_no_bedrock_client(self):
         """Bedrock 클라이언트 없을 때 오류 테스트"""
-        with pytest.raises(ValueError, match="AWS Bedrock 클라이언트가 필요합니다"):
-            StreamingHandler({})
+        # 실제 코드에서는 빈 딕셔너리일 때 직접 boto3 클라이언트를 생성하려고 시도함
+        # 따라서 boto3.client를 모킹해서 실패하도록 만들어야 함
+        with patch('boto3.client') as mock_boto_client:
+            mock_boto_client.side_effect = Exception("AWS 자격 증명 오류")
+            with pytest.raises(ValueError, match="AWS Bedrock 클라이언트 초기화 실패"):
+                StreamingHandler({})
     
     def test_parse_prompt_for_caching_with_boundary(self):
         """캐싱 경계가 있는 프롬프트 파싱 테스트"""

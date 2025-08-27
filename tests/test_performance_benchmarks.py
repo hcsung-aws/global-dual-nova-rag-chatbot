@@ -130,7 +130,7 @@ class TestPerformanceBenchmarks:
         
         # BedrockService는 AWSClientManager 인스턴스를 받음
         bedrock_service = BedrockService(aws_manager)
-        translation_service = TranslationService(clients['translate'])
+        translation_service = TranslationService(aws_manager)
         
         # DualResponseGenerator는 StreamingHandler만 받음
         dual_generator = DualResponseGenerator(bedrock_service.streaming_handler)
@@ -185,7 +185,7 @@ class TestPerformanceBenchmarks:
         clients = aws_manager.initialize_clients()
         
         bedrock_service = BedrockService(aws_manager)
-        translation_service = TranslationService(clients['translate'])
+        translation_service = TranslationService(aws_manager)
         
         # 순차 처리 시간 측정
         def sequential_processing():
